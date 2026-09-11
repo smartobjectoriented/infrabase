@@ -32,8 +32,12 @@ FROM ubuntu:24.04 AS toolchains
 # gcc-aarch64-linux-gnu installs "aarch64-linux-gnu-", while
 # IB_TOOLCHAIN:virt64/:rpi4_64 and the patched kernel Makefile pin
 # "aarch64-none-linux-gnu-".
+#
+# Two of them: the Linux-hosted one for the kernel and U-Boot, and the
+# bare-metal one for AVZ.
 
 ARG AARCH64_LINUX_VER=12.3.rel1
+ARG AARCH64_ELF_VER=12.3.rel1
 ARG ARM_BASE=https://developer.arm.com/-/media/Files/downloads/gnu
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -48,6 +52,16 @@ RUN curl -fSL "${ARM_BASE}/${AARCH64_LINUX_VER}/binrel/arm-gnu-toolchain-${AARCH
 	| tar -xJ -C /opt/toolchains \
 	&& mv /opt/toolchains/arm-gnu-toolchain-*-aarch64-none-linux-gnu \
 	      /opt/toolchains/aarch64-none-linux-gnu
+
+# Bare-metal toolchain: AVZ, built from the SO3 tree by the avz recipe in
+# meta-so3. Selected by CONFIG_CROSS_COMPILE in the *_avz_defconfig, NOT by
+# IB_TOOLCHAIN — which is why it is so easy to miss: nothing in local.conf
+# mentions it, and the failure only shows up once IB_HYPERVISOR="avz".
+
+RUN curl -fSL "${ARM_BASE}/${AARCH64_ELF_VER}/binrel/arm-gnu-toolchain-${AARCH64_ELF_VER}-$(uname -m)-aarch64-none-elf.tar.xz" \
+	| tar -xJ -C /opt/toolchains \
+	&& mv /opt/toolchains/arm-gnu-toolchain-*-aarch64-none-elf \
+	      /opt/toolchains/aarch64-none-elf
 
 # ---------------------------------------------------------------------
 # Stage 2 — the build environment proper
@@ -83,7 +97,7 @@ RUN apt-get update \
 
 COPY --from=toolchains /opt/toolchains /opt/toolchains
 
-ENV PATH=/opt/toolchains/aarch64-none-linux-gnu/bin:${PATH}
+ENV PATH=/opt/toolchains/aarch64-none-linux-gnu/bin:/opt/toolchains/aarch64-none-elf/bin:${PATH}
 
 # The build escalates a few operations (losetup, mount, mkfs, cpio with
 # device nodes) through `sudo -n`. Inside a throw-away build container a
