@@ -27,6 +27,7 @@ build/cache
 # do_attach_infrabase records what it wrote (base.bbclass), one manifest per
 # attached component tree, so the next attach can refuse to clobber local edits.
 *.attach.sha256
+*.attach.pf
 
 **/doxy/**
 **/generated/**

@@ -88,8 +88,29 @@ do_itb () {
 # Either way the result is gzipped straight into initrd.cpio.gz; we never
 # overwrite the (now meaningful) static initrd.cpio.
 
+# The dependency is on rootfs-linux:do_build, NOT on any deploy. rootfs.cpio
+# is written by buildroot's post_image.sh at the end of the rootfs build; it
+# is a build output, and nothing has to be installed anywhere first.
+#
+# It used to depend on usr-linux:do_deploy, which made building an image
+# require deploying one: that task mounts the target storage, and on a
+# platform with IB_STORAGE_MODE="hard" (rpi4, rpi4_64) the storage is the
+# physical SD card. `build.sh bsp-linux` then failed on a machine with no
+# card in the reader, at a task that only ever needed a file buildroot had
+# already written. The chain was do_build -> do_itb -> do_prepare_initrd ->
+# usr-linux:do_deploy -> rootfs-linux:do_deploy -> mount /dev/mmcblk0p1.
+#
+# Invisible on virt64, where IB_STORAGE_MODE="soft" makes the same deploy a
+# loopback image.
+#
+# Note this is NOT true of the so3/pos_sol/micofe trees, whose usr-linux
+# bbappend makes do_deploy a BUILD step that bakes the apps into rootfs.cpio
+# and depends on ${IB_ROOTFS_METHOD}:do_build. There the dependency is right
+# and the initrd legitimately carries the apps. Here, as in opencn-ng,
+# usr-linux:do_deploy mounts the media and copies onto the partition.
+
 do_prepare_initrd[nostamp] = "1"
-do_prepare_initrd[depends] = "usr-linux:do_deploy"
+do_prepare_initrd[depends] = "rootfs-linux:do_build"
 
 python do_prepare_initrd () {
     import hashlib
