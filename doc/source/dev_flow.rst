@@ -60,7 +60,7 @@ the development branch is merged of in the ``main`` branch.
 Create new issue & branch
 =========================
 
-Infrabase is hosted on `GitHub <https://github.com/EDGEMTech/infrabase>`__. To create a
+Infrabase is hosted on `GitHub <https://github.com/smartobjectoriented/infrabase>`__. To create a
 branch with an associated issue:
 
 1. Create a new issue: `Creating an issue
