@@ -1,6 +1,6 @@
---- /home/rossierd/edgemtech/infrabase/build/tmp/work/qemu-8.0.0-r0/qemu-8.0.0/include/hw/arm/virt.h	2023-04-19 18:31:47.000000000 +0200
-+++ ./include/hw/arm/virt.h	2023-06-06 18:46:06.923080803 +0200
-@@ -68,6 +68,11 @@
+--- a/include/hw/arm/virt.h
++++ b/include/hw/arm/virt.h
+@@ -58,6 +58,11 @@
      VIRT_GIC_VCPU,
      VIRT_GIC_ITS,
      VIRT_GIC_REDIST,
@@ -12,3 +12,21 @@
      VIRT_SMMU,
      VIRT_UART,
      VIRT_MMIO,
+@@ -148,6 +153,17 @@
+     bool tcg_its;
+     bool virt;
+     bool ras;
++
++    /*
++     * Boot ROM emulation. When bootrom_drive names a drive, the machine
++     * copies bootrom_size bytes from bootrom_offset of that drive to
++     * bootrom_load and starts the CPU there — what a real SoC ROM does with
++     * the medium it boots from. See virt_bootrom_setup().
++     */
++    char *bootrom_drive;
++    uint64_t bootrom_offset;
++    uint64_t bootrom_load;
++    uint64_t bootrom_size;
+     bool mte;
+     bool dtb_randomness;
+     OnOffAuto acpi;
