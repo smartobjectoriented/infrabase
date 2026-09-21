@@ -35,7 +35,7 @@ def __do_platform_deploy(d):
     # whatever the firmware loaded as kernel8.img — our U-Boot, unchanged.
     # OP-TEE is not an option on this SoC; see IB_BOOT_CHAINS_SUPPORTED in
     # build/conf/local.conf.
-    if chain == "atf+uboot":
+    if d.getVar('IB_CHAIN_HAS_ATF'):
         atf_plat = d.getVar('IB_ATF_PLAT') or "rpi4"
         bl31 = os.path.join(d.getVar('IB_ATF_PATH'), "build", atf_plat, "release", "bl31.bin")
         if not os.path.isfile(bl31):

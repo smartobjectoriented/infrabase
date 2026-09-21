@@ -41,7 +41,7 @@ do_configure[depends] += "atf:do_build"
 # would build a binary nothing consumes.
 python () {
     if (d.getVar('IB_PLATFORM') == 'verdin-imx8mp'
-            and d.getVar('IB_BOOT_CHAIN') == 'atf+optee+uboot'):
+            and d.getVar('IB_CHAIN_HAS_OPTEE')):
         d.appendVarFlag('do_configure', 'depends', ' optee:do_build')
 }
 
@@ -66,7 +66,7 @@ do_configure () {
 
 		cp ${IB_ATF_PATH}/build/imx8mp/release/bl31.bin .
 
-		if [ "${IB_BOOT_CHAIN}" = "atf+optee+uboot" ]; then
+		if [ -n "${IB_CHAIN_HAS_OPTEE}" ]; then
 			# Use raw binary (no OPTE v1 header): ATF BL31-only mode jumps directly
 			# to BL32_BASE so the binary must start with _start, not a header.
 			python3 ${IB_OPTEE_PATH}/scripts/gen_tee_bin.py \
@@ -74,7 +74,7 @@ do_configure () {
 				--out_tee_raw_bin ./tee.bin
 		else
 			# No secure world on this chain. Drop any tee.bin left by a
-			# previous atf+optee+uboot build: the SPL image rule picks it up
+			# previous secure-world build: the SPL image rule picks it up
 			# from the working tree, so a stale one would silently be
 			# re-embedded in flash.bin while ATF is built without SPD.
 			rm -f ./tee.bin
@@ -103,7 +103,7 @@ do_build () {
 		# SPL assembles flash.bin as SPL + BL31 + U-Boot. The chain is folded
 		# into the freshness hash so switching chains always rebuilds
 		# flash.bin — its inputs are otherwise identical on the ATF side.
-		if [ "${IB_BOOT_CHAIN}" = "atf+optee+uboot" ]; then
+		if [ -n "${IB_CHAIN_HAS_OPTEE}" ]; then
 			TEE_ARG="TEE=./tee.bin"
 			HASH_INPUTS="$(sha256sum "$BL31" "$TEE_ELF" 2>/dev/null)"
 		else
