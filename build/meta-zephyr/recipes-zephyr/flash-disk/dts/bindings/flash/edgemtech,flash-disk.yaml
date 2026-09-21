@@ -1,0 +1,40 @@
+# Copyright (c) 2026 EDGEMTech SA
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  A flash device backed by a window of a block device.
+
+  reg gives the byte offset and size of the window within the disk, so two
+  nodes can carve independent slots out of one device. Children are the
+  usual fixed-partitions.
+
+compatible: "edgemtech,flash-disk"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  disk-name:
+    type: string
+    required: true
+    description: |
+      Name the block device registered with the disk access layer, as in
+      the disk-name property of the virtio,blk or sdmmc node backing it.
+
+  erase-block-size:
+    type: int
+    required: true
+    description: |
+      Erase granularity presented to the flash API. A disk has no erase, so
+      this only sets the page size callers must align to; the driver honours
+      it by writing erase-value over the range.
+
+  write-block-size:
+    type: int
+    required: true
+
+  erase-value:
+    type: int
+    default: 255

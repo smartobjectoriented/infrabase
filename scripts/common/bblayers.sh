@@ -102,7 +102,7 @@ regen_bblayers() {
 		echo 'BBLAYERS = " \'
 		for _l in meta meta-qemu meta-filesystem meta-uboot meta-linux \
 		          meta-rootfs meta-usr meta-bsp meta-atf meta-so3 \
-		          $IB_PRODUCT_LAYERS; do
+		          meta-zephyr $IB_PRODUCT_LAYERS; do
 			echo "  \${TOPDIR}/$_l \\"
 		done
 		if test -n "$_overlay"; then
