@@ -211,12 +211,11 @@ do_clean[depends] = "usr-linux:do_clean rootfs-linux:do_clean linux:do_clean ubo
 # failing on a platform where atf/optee/avz were never built (their do_clean
 # is harmless but the recipes may be skipped by COMPATIBLE_PLATFORM).
 python () {
-    chain = d.getVar('IB_BOOT_CHAIN') or ""
     hyp = d.getVar('IB_HYPERVISOR') or "none"
     extra = []
-    if chain in ("atf+uboot", "atf+optee+uboot"):
+    if d.getVar('IB_CHAIN_HAS_ATF'):
         extra.append("atf:do_clean")
-    if chain == "atf+optee+uboot":
+    if d.getVar('IB_CHAIN_HAS_OPTEE'):
         extra.append("optee:do_clean")
     if hyp == "avz":
         extra.append("avz:do_clean")

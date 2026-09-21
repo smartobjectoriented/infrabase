@@ -33,7 +33,7 @@ do_build[nostamp] = "1"
 # --tos-fw), and "uboot" never reaches this recipe. Gating on the chain
 # avoids building OP-TEE for nothing.
 
-do_build[depends] = "${@bb.utils.contains('IB_BOOT_CHAIN', 'atf+optee+uboot', 'optee:do_build', '', d)}"
+do_build[depends] = "${@'optee:do_build' if d.getVar('IB_CHAIN_HAS_OPTEE') else ''}"
 do_configure[noexec] = "1"
 
 # Where the working directory will be placed in infrabase root dir

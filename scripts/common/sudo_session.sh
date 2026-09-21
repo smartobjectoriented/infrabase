@@ -17,12 +17,26 @@
 #   # keep-alive is auto-killed on EXIT/INT/TERM via the installed trap
 
 sudo_session_start() {
-	# Validate the sudo timestamp upfront. With a NOPASSWD sudoers
-	# entry this is a silent no-op; otherwise the user gets a single
-	# password prompt right here, BEFORE bitbake starts.
-	if ! sudo -v
+	# Can we already run privileged commands without prompting? That is
+	# the only thing the build actually needs: every escalation below is
+	# `sudo -n <cmd>`, never `sudo -v`.
+	#
+	# Probing with `sudo -n true` rather than `sudo -v` matters, because
+	# the two disagree under NOPASSWD. `-v` validates the *user's
+	# credentials* and re-authenticates whenever the timestamp has
+	# expired, NOPASSWD or not; running a command does not. On a host
+	# with NOPASSWD the old `sudo -v` gate therefore demanded a password
+	# every 30 minutes for a build that would have run fine without one
+	# — and in a session with no TTY (CI, an editor's terminal, an agent)
+	# it could not be answered at all, so the build failed on
+	# credentials rather than on anything it was asked to do.
+	if sudo -n true 2>/dev/null
+	then
+		: # already good, no prompt
+	elif ! sudo -v
 	then
 		printf "Error: failed to acquire sudo credentials\n" >&2
+		printf "       (run 'sudo -v' from an interactive terminal first)\n" >&2
 		return 1
 	fi
 

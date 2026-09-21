@@ -120,14 +120,18 @@ inherit filesystem
 # Per-platform bootloader assembly lives in bsp_<platform>.inc as
 # __do_platform_boot_chain(d).
 
-# Build dependencies gate on the two orthogonal axes (both already
-# normalised by ib_normalize_boot_axes in base.bbclass, so "full" and the
-# empty string never reach here):
+# Build dependencies gate on the STAGES in the chain, one flag per stage,
+# derived by ib_normalize_boot_axes in base.bbclass (so "full" and the empty
+# string never reach here):
 #
-#   IB_BOOT_CHAIN = "uboot"            u-boot only
-#                   "atf+uboot"        + ATF
-#                   "atf+optee+uboot"  + ATF + OP-TEE
-#   IB_HYPERVISOR = "avz"              + AVZ, on any of the three chains
+#   IB_CHAIN_HAS_ATF    ATF is in the chain
+#   IB_CHAIN_HAS_OPTEE  ... and OP-TEE with it
+#   IB_CHAIN_HAS_AVZ    the hypervisor runs underneath the payload
+#
+# Per stage and not per whole chain because the chain is an ordered list:
+# "atf+optee+uboot" and "atf+optee+uboot+avz" both carry a secure world, and
+# a test against the chain string would see the second as something else and
+# silently build ATF without OP-TEE.
 #
 # Deps are wired into BOTH do_build (so `build.sh <bsp>` actually compiles
 # every source artefact) AND do_deploy_boot_chain (so a standalone
@@ -137,19 +141,32 @@ do_deploy_boot_chain[nostamp] = "1"
 do_deploy_boot_chain[depends] = "uboot:do_build"
 
 python () {
-    chain = d.getVar('IB_BOOT_CHAIN') or ""
-    hyp = d.getVar('IB_HYPERVISOR') or "none"
     extra = []
-    if chain in ("atf+uboot", "atf+optee+uboot"):
+    if d.getVar('IB_CHAIN_HAS_ATF'):
         extra.append("atf:do_build")
-    if chain == "atf+optee+uboot":
+    if d.getVar('IB_CHAIN_HAS_OPTEE'):
         extra.append("optee:do_build")
-    if hyp == "avz":
+    if d.getVar('IB_CHAIN_HAS_AVZ'):
         extra.append("avz:do_build")
     if extra:
         deps = ' ' + ' '.join(extra)
         d.appendVarFlag('do_deploy_boot_chain', 'depends', deps)
         d.appendVarFlag('do_build', 'depends', deps)
+
+    # do_itb needs the hypervisor specifically. Every *_avz ITS /incbin/s the
+    # AVZ binary and its device tree, so mkimage reads files avz:do_build
+    # produces.
+    #
+    # The do_build dependency above does NOT cover that: `addtask do_itb
+    # before do_build` makes do_build wait for do_itb, but nothing orders
+    # do_itb against avz:do_build — bitbake may run them in either order, or
+    # at the same time, and mkimage then reads a missing or half-written
+    # binary.
+    #
+    # avz alone: atf and optee land in flash0.img, which do_itb never reads.
+
+    if d.getVar('IB_CHAIN_HAS_AVZ'):
+        d.appendVarFlag('do_itb', 'depends', ' avz:do_build')
 }
 
 python do_deploy_boot_chain () {
@@ -180,7 +197,17 @@ def __do_deploy_boot(d):
         bb.plain("Mounting storage")
         __do_fs_mount(d)
 
-    __do_platform_deploy(d)
+    # Unmount even when the platform deploy raises. bitbake does not clean up
+    # after a failed task, so a storage left mounted makes the next
+    # init_storage or deploy fail for a reason that looks unrelated — the
+    # image is busy, or an old loop device still holds it. Backported from
+    # opencn-ng, which hit exactly that.
 
-    if d.getVar('IB_STORAGE_MODE') not in ("remote", "http"):
-        __do_fs_umount(d)
+    try:
+        __do_platform_deploy(d)
+    finally:
+        if d.getVar('IB_STORAGE_MODE') not in ("remote", "http"):
+            try:
+                __do_fs_umount(d)
+            except Exception as e:
+                bb.warn("__do_deploy_boot: cleanup: __do_fs_umount failed: %s" % e)
