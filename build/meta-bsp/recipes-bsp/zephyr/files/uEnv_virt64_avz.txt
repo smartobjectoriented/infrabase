@@ -1,0 +1,15 @@
+# Copyright (c) 2026 EDGEMTech SA
+
+fdt_high=ffffffffffffffff
+initrd_high=ffffffffffffffff
+
+# Zephyr as an AVZ guest on virt64: U-Boot loads the AVZ bundle and the
+# guest ITB, then guest-boot hands the second to the hypervisor. Same
+# shape as the SO3 and Linux agencies — only the guest differs, and it
+# carries no ramdisk because Zephyr has no rootfs.
+AVZ_LOAD_ADDR=0x65000000
+GUEST_LOAD_ADDR=0x70000000
+
+start=load virtio 0:1 ${AVZ_LOAD_ADDR} virt64_avz.itb; load virtio 0:1 ${GUEST_LOAD_ADDR} virt64_guest.itb; guest-boot ${AVZ_LOAD_ADDR} ${GUEST_LOAD_ADDR}
+
+# No bootargs: Zephyr takes no command line.

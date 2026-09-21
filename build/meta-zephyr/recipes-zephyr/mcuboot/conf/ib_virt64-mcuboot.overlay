@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * What the bootloader needs and the application does not.
+ *
+ * MCUboot writes the image it RAM-loads into app_ram, which is outside its
+ * own sram0 and therefore outside the linear RAM mapping the MMU is set up
+ * with at boot. Without this the copy takes a synchronous exception in
+ * memcpy() — the fault is in the bootloader's page tables, not in the
+ * address, which is ordinary DRAM either way.
+ *
+ * Declaring the node zephyr,memory-region with an arm64 memory attribute is
+ * what puts it in mmu_dt_regions (arch/arm64/core/mmu.c), so it is mapped
+ * before the MMU is enabled.
+ *
+ * Here and not in the shared overlay because it must NOT apply to the
+ * application: there app_ram is zephyr,sram, and a memory-region on the same
+ * addresses would declare a second linker region over the first.
+ */
+
+#include <zephyr/dt-bindings/memory-attr/memory-attr-arm64.h>
+
+&app_ram {
+	compatible = "zephyr,memory-region", "mmio-sram";
+	zephyr,memory-region = "APP_RAM";
+	zephyr,memory-attr = <DT_MEM_ARM64_MMU_NORMAL>;
+};

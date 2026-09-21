@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ *
+ * Zephyr guest bundle for virt64 (armv8) — the Zephyr counterpart of
+ * recipes-bsp/so3/files/its/virt64_so3_guest.its. Paired with
+ * virt64_avz.its by the two-ITB guest-boot shape: U-Boot loads both and
+ * `guest-boot` hands the second to AVZ.
+ *
+ * The one structural difference from the SO3 and Linux guests: no
+ * ramdisk. Zephyr is an executive — the application is linked into the
+ * image, there is no kernel/userspace split to populate a rootfs for.
+ * The kernel + usr split is kept in the source layout (zephyr/zephyr and
+ * zephyr/usr) because that is where it belongs; it just does not survive
+ * into the boot artefacts.
+ *
+ * Template: ${IB_*} placeholders are expanded by bsp_render_its
+ * (bsp.bbclass) at do_render_its time.
+ *
+ * Load address 0x41000000 matches CONFIG_SRAM_BASE_ADDRESS of the
+ * ib_virt64 board and the agency base AVZ maps for its domain. The
+ * FDT is the same minimal blob the bare ITS carries — AVZ hands it to the
+ * guest, Zephyr ignores it, see virt64_fdt.dts.
+ */
+
+/dts-v1/;
+
+/ {
+	description = "Zephyr guest bundle for virt64 (armv8)";
+
+	images {
+
+		zephyr {
+			description = "Zephyr RTOS (guest)";
+			data = /incbin/("${IB_ZEPHYR_IMAGE}");
+			type = "guest";
+			arch = "arm64";
+			os = "linux";
+			compression = "none";
+			load = <0x41000000>;
+			entry = <0x41000000>;
+		};
+
+		fdt {
+			description = "Zephyr guest device tree (AVZ-exposed)";
+			data = /incbin/("${IB_ZEPHYR_FDT}");
+			type = "flat_dt";
+			arch = "arm64";
+			compression = "none";
+			load = <0x50000000>;
+		};
+	};
+
+	configurations {
+		default = "capsule";
+
+		capsule {
+			description = "Zephyr guest on virt64";
+			loadables = "zephyr";
+			fdt = "fdt";
+		};
+	};
+};

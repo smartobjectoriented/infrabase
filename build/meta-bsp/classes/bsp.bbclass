@@ -17,6 +17,27 @@ IB_OPTEE_PATH = "${IB_DIR}/atf/optee"
 # ${IB_*_PATH} variables; do_render_its renders them here before mkimage and
 # writes the resulting .itb here too.
 IB_ITB_PATH:linux = "${IB_DIR}/linux/images"
+IB_ITB_PATH:zephyr = "${IB_DIR}/zephyr/images"
+
+# Zephyr environment, laid out like the others: the tree at zephyr/zephyr,
+# the applications at zephyr/usr, the ITB at zephyr/images.
+#
+# IB_ZEPHYR_IMAGE is the payload bsp-zephyr puts in the ITB: the binary
+# usr-zephyr builds, under zephyr/usr/build/<app>/ the way linux/usr builds
+# under linux/usr/build/. IB_ZEPHYR_APP selects the application and is
+# declared by usr-zephyr; repeated here so IB_ZEPHYR_IMAGE resolves for
+# recipes that read it without pulling that recipe in.
+IB_ZEPHYR_PATH ?= "${IB_DIR}/zephyr/zephyr"
+IB_ZEPHYR_USR_PATH ?= "${IB_DIR}/zephyr/usr"
+IB_ZEPHYR_APP ?= "hello-ib"
+IB_ZEPHYR_IMAGE ?= "${IB_ZEPHYR_USR_PATH}/build/${IB_ZEPHYR_APP}/zephyr/zephyr.bin"
+IB_ZEPHYR_FDT ?= "${IB_DIR}/zephyr/images/${IB_PLATFORM}_fdt.dtb"
+
+# The image that boots before the application, when the chain has one
+# (MCUboot). Declared by usr-zephyr, which also builds it; empty means the
+# application boots directly.
+IB_ZEPHYR_BOOT_APP ?= ""
+IB_ZEPHYR_BOOT_IMAGE ?= "${IB_ZEPHYR_USR_PATH}/build/${IB_ZEPHYR_BOOT_APP}/zephyr/zephyr.bin"
 
 # Component tree locations referenced from the ITS templates. Provided here
 # (?=) so every BSP recipe can render any ITS regardless of which classes it
@@ -50,6 +71,9 @@ bsp_render_its() {
 	sed -e "s|[$][{]IB_AVZ_PATH[}]|${IB_AVZ_PATH}|g" \
 	    -e "s|[$][{]IB_LINUX_PATH[}]|${IB_LINUX_PATH}|g" \
 	    -e "s|[$][{]IB_ROOTFS_PATH[}]|${IB_ROOTFS_PATH}|g" \
+	    -e "s|[$][{]IB_ZEPHYR_IMAGE[}]|${IB_ZEPHYR_IMAGE}|g" \
+	    -e "s|[$][{]IB_ZEPHYR_FDT[}]|${IB_ZEPHYR_FDT}|g" \
+	    -e "s|[$][{]IB_ZEPHYR_BOOT_IMAGE[}]|${IB_ZEPHYR_BOOT_IMAGE}|g" \
 	    -e "s|[$][{]IB_PLATFORM[}]|${IB_PLATFORM}|g" \
 	    "${IB_ITS_SRC}/$1.its" > "${IB_ITB_PATH}/$1.its"
 }
@@ -72,6 +96,10 @@ def bsp_render_its_py(d, name):
         '${IB_LINUX_PATH}':  d.getVar('IB_LINUX_PATH') or '',
         '${IB_ROOTFS_PATH}': d.getVar('IB_ROOTFS_PATH') or '',
         '${IB_PLATFORM}':    d.getVar('IB_PLATFORM') or '',
+        '${IB_LINUX_DTB}':   d.getVar('IB_LINUX_DTB') or '',
+        '${IB_ZEPHYR_IMAGE}': d.getVar('IB_ZEPHYR_IMAGE') or '',
+        '${IB_ZEPHYR_FDT}':  d.getVar('IB_ZEPHYR_FDT') or '',
+        '${IB_ZEPHYR_BOOT_IMAGE}': d.getVar('IB_ZEPHYR_BOOT_IMAGE') or '',
     }
     with open(src) as f:
         text = f.read()

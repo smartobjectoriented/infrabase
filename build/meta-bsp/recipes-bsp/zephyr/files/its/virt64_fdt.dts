@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * Minimal FDT shipped in the Zephyr ITB.
+ *
+ * Zephyr resolves its devicetree at compile time and ignores x0 at entry,
+ * so the payload never reads this blob. Two other things do.
+ *
+ * U-Boot requires it: arm64 boot_prep_linux() (arch/arm/lib/bootm.c)
+ * panics with "FDT and ATAGS support not compiled in" when a Linux-type
+ * image carries no FDT. That is why it exists at all.
+ *
+ * AVZ reads the memory node, and it is load-bearing: domain_utils.c
+ * get_mem_info() takes the guest domain's IPA base and size straight from
+ * here (memslot[MEMSLOT_AGENCY].ipa_addr / .size). Declaring the whole
+ * 1 GiB at 0x40000000 made AVZ map the domain at IPA 0x40000000 while the
+ * ITB loaded Zephyr at 0x41000000, and the hypervisor panicked with
+ * "Unhandled data read at 0x130" as soon as it unpaused the domain. The
+ * node must therefore describe the domain, not the board: base at the
+ * Zephyr load address, size the slot AVZ should map.
+ *
+ * Kept minimal and self-contained rather than reusing the outer-linux
+ * build's virt64.dtb: a Zephyr BSP has no business requiring a Linux
+ * kernel tree just to obtain a device tree it does not use. Compiled by
+ * dtc at do_itb time, the same way meta-e1c compiles its capsule
+ * partition descriptor.
+ */
+
+/dts-v1/;
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+	compatible = "linux,dummy-virt";
+	model = "EDGE-M1 virt64 (Zephyr)";
+
+	chosen { };
+
+	/* Domain base = Zephyr's load address = the board's
+	 * CONFIG_SRAM_BASE_ADDRESS. 512 MiB is what the Linux and SO3 guests
+	 * get on this platform. */
+	memory@41000000 {
+		device_type = "memory";
+		reg = <0x00 0x41000000 0x00 0x20000000>;
+	};
+};

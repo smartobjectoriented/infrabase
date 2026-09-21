@@ -1,0 +1,67 @@
+diff --git a/boot/zephyr/include/target.h b/boot/zephyr/include/target.h
+index 1d321a19..8a54d817 100644
+--- a/boot/zephyr/include/target.h
++++ b/boot/zephyr/include/target.h
+@@ -20,7 +20,20 @@
+  * everything we need.
+  */
+ #include <zephyr/devicetree.h>
++/*
++ * Not every SoC ships a soc.h. The arm64 QEMU SoCs (qemu_cortex_a53 and
++ * friends) carry only Kconfig and a CMakeLists, and including it
++ * unconditionally is what stops MCUboot building for them at all — the
++ * failure is a missing header, long before anything architectural.
++ * Everything below needs the devicetree, not the SoC header.
++ */
++#if defined(__has_include)
++#if __has_include(<soc.h>)
++#include <soc.h>
++#endif
++#else
+ #include <soc.h>
++#endif
+ #include <zephyr/storage/flash_map.h>
+ #include <zephyr/devicetree/partitions.h>
+ 
+diff --git a/boot/zephyr/io.c b/boot/zephyr/io.c
+index c52ccef5..e29b5f2a 100644
+--- a/boot/zephyr/io.c
++++ b/boot/zephyr/io.c
+@@ -23,7 +23,16 @@
+ #include <zephyr/sys/__assert.h>
+ #include <zephyr/drivers/flash.h>
+ #include <zephyr/drivers/timer/system_timer.h>
++/* Not every SoC ships a soc.h — the arm64 QEMU SoCs carry only Kconfig.
++ * See boot/zephyr/include/target.h for the full note.
++ */
++#if defined(__has_include)
++#if __has_include(<soc.h>)
+ #include <soc.h>
++#endif
++#else
++#include <soc.h>
++#endif
+ #include <zephyr/linker/linker-defs.h>
+ 
+ #include "target.h"
+diff --git a/boot/zephyr/main.c b/boot/zephyr/main.c
+index 73652cf2..d4367f87 100644
+--- a/boot/zephyr/main.c
++++ b/boot/zephyr/main.c
+@@ -23,7 +23,16 @@
+ #include <zephyr/devicetree.h>
+ #include <zephyr/drivers/gpio.h>
+ #include <zephyr/sys/__assert.h>
++/* Not every SoC ships a soc.h — the arm64 QEMU SoCs carry only Kconfig.
++ * See boot/zephyr/include/target.h for the full note.
++ */
++#if defined(__has_include)
++#if __has_include(<soc.h>)
+ #include <soc.h>
++#endif
++#else
++#include <soc.h>
++#endif
+ 
+ #include "io/io.h"
+ #include "target.h"

@@ -1,0 +1,273 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * EDGE-M1 virt64: Zephyr on the same QEMU machine the rest of the
+ * virt64 platform uses, i.e. the one scripts/st.sh launches:
+ *
+ *     qemu-system-aarch64 -M virt,gic-version=2 -cpu cortex-a72 -m 1024
+ *
+ * Two deltas versus the stock qemu_cortex_a53 board:
+ *
+ *   * GICv2 instead of GICv3. st.sh pins gic-version=2 for every virt64
+ *     boot mode, so the stock board's GICv3 node addresses a distributor
+ *     that is not there.
+ *   * SRAM based at 0x41000000 rather than 0x40000000, matching the
+ *     kernel load address used by the virt64 ITS files (virt64.its loads
+ *     Linux at 0x41000000). Keeping the same base means the FIT image
+ *     entry for Zephyr can reuse the existing address map, and leaves
+ *     0x40000000..0x41000000 clear for U-Boot's own use.
+ */
+
+/dts-v1/;
+#include <arm64/qemu/qemu-virt-a53.dtsi>
+
+/ {
+	model = "EDGE-M1 virt64";
+	compatible = "edgemtech,edgem1-virt64";
+
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "hvc";
+	};
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+	};
+
+	soc {
+		sram0: memory@41000000 {
+			compatible = "mmio-sram";
+			reg = <0x0 0x41000000 0x0 DT_SIZE_M(64)>;
+		};
+
+		/* The 32 virtio-mmio slots QEMU's virt machine exposes. All
+		 * disabled here, as on the stock board: an application enables
+		 * the one its device is attached to. scripts/st.sh puts the
+		 * sdcard image on virtio-mmio-bus.4 and the network device on
+		 * bus 5, counting down from the last slot the way QEMU does. */
+		virtio_mmio0: virtio_mmio@a000000 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000000 0x0 0x200>;
+			interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio1: virtio_mmio@a000200 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000200 0x0 0x200>;
+			interrupts = <GIC_SPI 17 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio2: virtio_mmio@a000400 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000400 0x0 0x200>;
+			interrupts = <GIC_SPI 18 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio3: virtio_mmio@a000600 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000600 0x0 0x200>;
+			interrupts = <GIC_SPI 19 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio4: virtio_mmio@a000800 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000800 0x0 0x200>;
+			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio5: virtio_mmio@a000a00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000a00 0x0 0x200>;
+			interrupts = <GIC_SPI 21 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio6: virtio_mmio@a000c00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000c00 0x0 0x200>;
+			interrupts = <GIC_SPI 22 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio7: virtio_mmio@a000e00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa000e00 0x0 0x200>;
+			interrupts = <GIC_SPI 23 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio8: virtio_mmio@a001000 {
+			compatible = "virtio,mmio";
+			interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			reg = <0x0 0xa001000 0x0 0x200>;
+			status = "disabled";
+		};
+		virtio_mmio9: virtio_mmio@a001200 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001200 0x0 0x200>;
+			interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio10: virtio_mmio@a001400 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001400 0x0 0x200>;
+			interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio11: virtio_mmio@a001600 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001600 0x0 0x200>;
+			interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio12: virtio_mmio@a001800 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001800 0x0 0x200>;
+			interrupts = <GIC_SPI 28 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio13: virtio_mmio@a001a00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001a00 0x0 0x200>;
+			interrupts = <GIC_SPI 29 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio14: virtio_mmio@a001c00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001c00 0x0 0x200>;
+			interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio15: virtio_mmio@a001e00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa001e00 0x0 0x200>;
+			interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio16: virtio_mmio@a002000 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002000 0x0 0x200>;
+			interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio17: virtio_mmio@a002200 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002200 0x0 0x200>;
+			interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio18: virtio_mmio@a002400 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002400 0x0 0x200>;
+			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio19: virtio_mmio@a002600 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002600 0x0 0x200>;
+			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio20: virtio_mmio@a002800 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002800 0x0 0x200>;
+			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio21: virtio_mmio@a002a00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002a00 0x0 0x200>;
+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio22: virtio_mmio@a002c00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002c00 0x0 0x200>;
+			interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio23: virtio_mmio@a002e00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa002e00 0x0 0x200>;
+			interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio24: virtio_mmio@a003000 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003000 0x0 0x200>;
+			interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio25: virtio_mmio@a003200 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003200 0x0 0x200>;
+			interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio26: virtio_mmio@a003400 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003400 0x0 0x200>;
+			interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio27: virtio_mmio@a003600 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003600 0x0 0x200>;
+			interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio28: virtio_mmio@a003800 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003800 0x0 0x200>;
+			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio29: virtio_mmio@a003a00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003a00 0x0 0x200>;
+			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio30: virtio_mmio@a003c00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003c00 0x0 0x200>;
+			interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+		virtio_mmio31: virtio_mmio@a003e00 {
+			compatible = "virtio,mmio";
+			reg = <0x0 0xa003e00 0x0 0x200>;
+			interrupts = <GIC_SPI 47 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			status = "disabled";
+		};
+	};
+};
+
+/*
+ * QEMU's virt machine with gic-version=2 puts GICD at 0x8000000 (64K) and
+ * GICC at 0x8010000 (64K). The included dtsi describes a v3 distributor
+ * plus redistributor window, so both compatible and reg are replaced.
+ *
+ * The v3-only ITS node stays in the tree but disabled: pcie@4010000000
+ * carries a phandle to it, so deleting the node leaves that reference
+ * dangling and the DT compile fails. Disabled is enough — nothing binds
+ * it as long as PCIe/MSI is off, which it is here.
+ */
+&gic {
+	compatible = "arm,gic-v2", "arm,gic";
+	reg = <0x00 0x8000000 0x00 0x10000>,	/* GICD */
+	      <0x00 0x8010000 0x00 0x10000>;	/* GICC */
+};
+
+&its {
+	status = "disabled";
+};
+
+&pcie {
+	status = "disabled";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};

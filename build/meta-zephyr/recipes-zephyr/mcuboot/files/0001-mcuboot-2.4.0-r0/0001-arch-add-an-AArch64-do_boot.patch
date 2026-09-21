@@ -1,0 +1,119 @@
+diff --git a/boot/zephyr/arch/arm64.c b/boot/zephyr/arch/arm64.c
+new file mode 100644
+index 00000000..a08bdb2e
+--- /dev/null
++++ b/boot/zephyr/arch/arm64.c
+@@ -0,0 +1,113 @@
++/*
++ * Copyright (c) 2026 EDGEMTech SA
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ *
++ * AArch64 chain-load.
++ *
++ * Without this file AArch64 falls through to arch/default.c, whose do_boot()
++ * locks interrupts and calls the entry point through a function pointer. That
++ * is right for a core that boots with the MMU and caches off. It is wrong
++ * here: Zephyr's arm64 port runs with the MMU enabled and the D-cache on, so
++ * the image MCUboot just wrote to RAM may still be sitting in the data cache,
++ * the I-cache may hold whatever used to be at those addresses, and the image
++ * itself expects to be entered per the arm64 boot protocol — MMU off, caches
++ * off, exceptions masked. Jumping without unwinding any of that either
++ * executes stale lines or faults as soon as the payload touches its own
++ * translation tables.
++ *
++ * The sequence below is the standard one, in the only order that works:
++ *
++ *   1. clean the D-cache to the point of coherency, WHILE the cache is still
++ *      enabled — afterwards stores bypass it and the clean would be a no-op
++ *      over a stale copy;
++ *   2. mask D/A/I/F so nothing asynchronous runs across the transition;
++ *   3. clear SCTLR_EL1.{M,C,I};
++ *   4. invalidate the I-cache and the TLBs, now that translation is off;
++ *   5. enter with x0-x3 zeroed.
++ *
++ * Step 3 is why this cannot be written in C. The instruction after the MMU
++ * is disabled is fetched at its PHYSICAL address; the sequence only survives
++ * because Zephyr's arm64 mapping is identity, so the code keeps executing
++ * from where it already was. A compiler is free to place a spill or a literal
++ * pool between the two, and a spill would be written with the cache already
++ * off, past the clean in step 1.
++ *
++ * x0 is zero rather than a device tree pointer. MCUboot's do_boot() has no
++ * DTB to pass, and the payload this was written for is another Zephyr image,
++ * which carries its own devicetree. A Linux payload would need x0 to point at
++ * an FDT, which means a way to tell MCUboot where one is — a separate
++ * concern, and not one the API expresses today.
++ */
++
++#include <zephyr/kernel.h>
++#include <zephyr/cache.h>
++#include <zephyr/drivers/flash.h>
++
++#include "bootutil/bootutil_log.h"
++#include "bootutil/bootutil.h"
++#include "bootutil/fault_injection_hardening.h"
++#include "flash_map_backend/flash_map_backend.h"
++#include "do_boot.h"
++
++BOOT_LOG_MODULE_DECLARE(mcuboot);
++
++static void __attribute__((noreturn)) arm64_enter_image(uintptr_t entry)
++{
++	__asm__ volatile(
++		"	mov	x19, %0\n"
++		"	msr	daifset, #0xf\n"	/* D, A, I, F */
++		"	isb\n"
++		"	mrs	x0, sctlr_el1\n"
++		"	bic	x0, x0, #(1 << 0)\n"	/* M: translation off */
++		"	bic	x0, x0, #(1 << 2)\n"	/* C: data cache off */
++		"	bic	x0, x0, #(1 << 12)\n"	/* I: instr cache off */
++		"	msr	sctlr_el1, x0\n"
++		"	isb\n"
++		"	ic	iallu\n"
++		"	tlbi	vmalle1\n"
++		"	dsb	sy\n"
++		"	isb\n"
++		"	mov	x0, xzr\n"
++		"	mov	x1, xzr\n"
++		"	mov	x2, xzr\n"
++		"	mov	x3, xzr\n"
++		"	br	x19\n"
++		:
++		: "r"(entry)
++		: "x0", "x19", "memory");
++
++	CODE_UNREACHABLE;
++}
++
++void do_boot(const struct boot_rsp *rsp)
++{
++	uintptr_t start;
++
++#if defined(MCUBOOT_RAM_LOAD)
++	start = rsp->br_hdr->ih_load_addr + rsp->br_hdr->ih_hdr_size;
++#else
++	uintptr_t flash_base;
++	int rc;
++
++	rc = flash_device_base(rsp->br_flash_dev_id, &flash_base);
++	if (rc != 0) {
++		BOOT_LOG_ERR("Error getting flash device base. rc = %d", rc);
++		FIH_PANIC;
++	}
++
++	start = flash_base + rsp->br_image_off + rsp->br_hdr->ih_hdr_size;
++#endif
++
++	BOOT_LOG_INF("Jumping to the image at 0x%lx", (unsigned long)start);
++
++	/* Step 1 — while the cache is still on. Everything after this point
++	 * touches registers only; a compiler spill here would be written past
++	 * the clean, but nothing reads it back, and the image bytes are what
++	 * had to reach memory.
++	 */
++	sys_cache_data_flush_all();
++	sys_cache_instr_invd_all();
++
++	arm64_enter_image(start);
++}
