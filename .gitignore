@@ -19,6 +19,15 @@ build/cache
 # Per-machine bitbake overrides, included by build/meta/conf/bitbake.conf
 /build/conf/site.conf
 
+# Generated on every build.sh / deploy.sh by
+# scripts/common/bblayers.sh:regen_boot_chain — the boot chain in effect.
+/build/conf/auto.conf
+
+# Written by the deploy (bsp_<plat>.inc) for scripts/st.sh: how to start the
+# machine. Listed here and not in filesystem/.gitignore, which the ".*" rule
+# below keeps untracked — a rule there would never leave this machine.
+/filesystem/boot.conf
+
 # TEZI HTTP feed published by deploy.sh, plus the feed server's pid/log, and
 # the makeusr.sh local deploy. Deliberately outside build/tmp so a clean does
 # not wipe a feed a board may be installing from.
