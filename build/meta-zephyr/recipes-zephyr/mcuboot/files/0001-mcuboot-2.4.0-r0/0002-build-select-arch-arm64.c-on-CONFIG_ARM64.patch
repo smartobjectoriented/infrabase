@@ -1,0 +1,15 @@
+diff --git a/boot/zephyr/CMakeLists.txt b/boot/zephyr/CMakeLists.txt
+index fd7b121c..dc4c9113 100644
+--- a/boot/zephyr/CMakeLists.txt
++++ b/boot/zephyr/CMakeLists.txt
+@@ -73,7 +73,9 @@ target_sources(app PRIVATE
+   watchdog.c
+ )
+ 
+-if(CONFIG_ARM)
++if(CONFIG_ARM64)
++  target_sources(app PRIVATE arch/arm64.c)
++elseif(CONFIG_ARM)
+   target_sources(app PRIVATE arch/arm.c)
+ elseif(CONFIG_SOC_FAMILY_ESPRESSIF_ESP32)
+   target_sources(app PRIVATE arch/esp32.c)

@@ -1,0 +1,19 @@
+CONFIG_ARM_ARCH_TIMER=y
+CONFIG_CACHE_MANAGEMENT=y
+
+# Non-secure EL1: this is where scripts/st.sh's QEMU (-M virt,gic-version=2,
+# no secure=on) and U-Boot both leave the CPU when they hand over.
+CONFIG_ARMV8_A_NS=y
+
+CONFIG_SERIAL=y
+CONFIG_CONSOLE=y
+CONFIG_UART_CONSOLE=y
+CONFIG_UART_INTERRUPT_DRIVEN=y
+
+# boards/Kconfig turns QEMU_ICOUNT on by default for any QEMU_TARGET, but
+# leaves QEMU_ICOUNT_SHIFT with no default — in-tree QEMU boards each supply
+# one from their own Kconfig.defconfig. Left on, the empty shift reaches
+# configs.c as GEN_ABSOLUTE_SYM_KCONFIG(CONFIG_QEMU_ICOUNT_SHIFT, ) and the
+# assembler rejects it. scripts/st.sh does not use -icount either, so the
+# board matches st.sh by turning it off.
+CONFIG_QEMU_ICOUNT=n

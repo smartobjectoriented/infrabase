@@ -1,0 +1,30 @@
+# Copyright (c) 2026 EDGEMTech SA
+
+fdt_high=ffffffffffffffff
+initrd_high=ffffffffffffffff
+
+# Bare Zephyr on virt64: U-Boot loads the single ITB from p1 and bootm's
+# it. No AVZ, so no second ITB and no guest-boot — just the RTOS.
+#
+# 0x65000000 is the staging address the other virt64 uEnv files already
+# use; the ITB is tiny here (tens of KiB) so anything in the free band
+# would do, but keeping one address across boot modes avoids surprises.
+LOAD_ADDR=0x65000000
+
+# Two things can be on p1, and which one is there was decided at build time
+# by IB_ZEPHYR_BOOT_APP:
+#
+#   virt64_mcuboot.itb   a bootloader, which then loads the application out
+#                        of slot 0 on p2 and jumps to it
+#   virt64.itb           the application itself, booted directly
+#
+# `load` fails cleanly on a file that is not there, so file presence is the
+# whole dispatch and one uEnv serves both. The bootloader is tried first: if
+# a tree built one, it is the thing that should run.
+boot_mcuboot=echo "== MCUboot (no hypervisor) =="; bootm ${LOAD_ADDR}
+boot_app=echo "== Zephyr application, no bootloader =="; bootm ${LOAD_ADDR}
+
+start=if load virtio 0:1 ${LOAD_ADDR} virt64_mcuboot.itb; then run boot_mcuboot; elif load virtio 0:1 ${LOAD_ADDR} virt64.itb; then run boot_app; else echo "== nothing bootable on p1 =="; fi
+
+# No bootargs: Zephyr takes no command line. The line is deliberately
+# absent rather than empty, so nothing suggests one would be honoured.

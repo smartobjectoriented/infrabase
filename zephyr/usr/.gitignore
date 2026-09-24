@@ -1,0 +1,2 @@
+# west build output, one directory per application (usr-zephyr:do_build).
+build/

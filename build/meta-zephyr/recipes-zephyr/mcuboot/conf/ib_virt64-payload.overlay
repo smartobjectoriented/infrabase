@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * What is true of the application and not of the bootloader in front of it.
+ *
+ * The two cannot both live at 0x41000000, and it is the application that
+ * moves, not MCUboot — because 0x41000000 is not a free choice:
+ *
+ *   - Under AVZ the guest is entered at the IPA its FDT's memory node
+ *     declares, whatever address the ITB loaded it at. AVZ's log says so
+ *     plainly: "Real physical address 0x48000000 / Intermediate phys
+ *     address 0x41000000", and an image linked for the load address runs
+ *     from the IPA base and prints nothing at all. The first image in the
+ *     domain therefore has to be linked at 0x41000000, and the first image
+ *     is MCUboot.
+ *
+ *   - Without AVZ, bootm honours the ITS load address literally and either
+ *     order would work — so taking the AVZ constraint costs nothing and
+ *     gives one pair of binaries good for both chains.
+ *
+ * So MCUboot keeps the board's sram0 and the application is linked into
+ * app_ram, which is what mcuboot,image-ram names in the shared overlay: one
+ * node, read by the bootloader to know where to copy and by imgtool (via
+ * --load-addr) to record it in the image header.
+ */
+
+/ {
+	chosen {
+		zephyr,sram = &app_text;
+	};
+
+	/* Not app_ram itself, but app_ram plus the MCUboot header.
+	 *
+	 * MCUboot copies the whole signed image — header included — to
+	 * mcuboot,image-ram, then jumps to that address plus the header size.
+	 * On arm64 the entry point is simply the first byte of the binary, so
+	 * the binary's first byte has to be exactly where the jump lands.
+	 *
+	 * That first byte is the `text` section, which the linker aligns to
+	 * 2048 for the exception vector table, so it can only ever be at a
+	 * 2048-aligned address — while the jump target is a load address plus
+	 * a 0x200 header. The only way to make the two equal is to load the
+	 * image 0x200 below the aligned address, which is what app_ram is.
+	 * Based at 0x48000200 instead, the alignment pushed `text` to
+	 * 0x48000800 while MCUboot still jumped to 0x48000200: 0x600 bytes of
+	 * padding into the image, and the guest ran until it wrote through a
+	 * wild pointer and AVZ trapped it.
+	 *
+	 * 0x200 is CONFIG_ROM_START_OFFSET, which on every other architecture
+	 * would apply this shift in the linker script. No arm64 linker script
+	 * honours it — the same gap that makes --pad-header necessary in
+	 * ib_virt64-payload.conf — and it cannot simply be raised to
+	 * 0x800 either: Kconfig drops its prompt under BOOTLOADER_MCUBOOT
+	 * ("prompt ... if !BOOTLOADER_MCUBOOT" in Kconfig.zephyr), so 0x200
+	 * is fixed and it is the load address that has to move.
+	 */
+	app_text: memory@48000000 {
+		compatible = "mmio-sram";
+		reg = <0x0 0x48000000 0x0 DT_SIZE_M(16)>;
+	};
+};

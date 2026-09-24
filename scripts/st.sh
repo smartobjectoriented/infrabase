@@ -85,10 +85,37 @@ launch_qemu() {
 
     IB_PLATFORM="$(conf_value IB_PLATFORM)"
 
-    # The hypervisor axis decides whether the guest needs EL2. Defaults to
-    # "none" so an older local.conf without the variable behaves as before.
-    IB_HYPERVISOR="$(conf_value IB_HYPERVISOR)"
-    : "${IB_HYPERVISOR:=none}"
+    # One guest per storage image.
+    #
+    # Every instance attaches filesystem/sdcard.img.<platform> with
+    # file.locking=off, so a second guest on the SAME image writes into the
+    # filesystem the first one is already writing to — silently.
+    #
+    # Scoped to the image rather than to QEMU as a whole, on purpose: two
+    # platforms use two images and may legitimately run side by side, which
+    # is what the per-instance MAC / GDB port offsets above are for. Only the
+    # same-image case is refused.
+    #
+    # The pgrep pattern deliberately requires a trailing space after the
+    # binary name so it cannot match this script's own command line.
+    _st_img="filesystem/sdcard.img.${IB_PLATFORM}"
+    _st_busy=""
+    for _p in $(pgrep -f 'qemu-system-[a-z0-9]+ ' 2>/dev/null); do
+        tr '\0' ' ' < /proc/$_p/cmdline 2>/dev/null | grep -Fq -- "$_st_img" || continue
+        # The same spelling in two trees is not the same file: every tree
+        # names its image "filesystem/sdcard.img.<plat>" and QEMU records
+        # that relative path verbatim. Resolve it through the guest's own
+        # cwd before deciding, or a guest in a sibling tree would block us.
+        [ "$(readlink -f /proc/$_p/cwd 2>/dev/null)/$_st_img" = "$PWD/$_st_img" ] \
+            && _st_busy="${_st_busy}${_p} "
+    done
+    if [ -n "${_st_busy}" ]; then
+        printf "Error: a QEMU guest is already using %s (pid %s).\n" \
+            "$_st_img" "${_st_busy% }" >&2
+        printf "       Two guests on one image corrupt it. Quit that one first:\n" >&2
+        printf "       Ctrl-A x in its console, or kill %s\n" "${_st_busy% }" >&2
+        exit 1
+    fi
 
     if [ "$IB_PLATFORM" == "virt64" ]; then
     QEMU_BIN="$IB_ROOT_DIR/qemu/build/qemu-system-aarch64"
@@ -101,40 +128,48 @@ launch_qemu() {
     # Bonus: no sudo needed (no tap device creation), so QEMU artefacts stay
     # owned by the regular user across runs.
     #
-    # Boot mode is picked from artefacts in filesystem/ (built by bsp.bbclass
-    # :do_deploy_boot_chain → bsp_virt64.inc:__do_platform_boot_chain):
-    #   * flash0.img present → ATF chain (IB_BOOT_CHAIN=atf+uboot / full,
-    #     ATF BL1+FIP, optionally OP-TEE). QEMU exposes EL3 (secure=on) and
-    #     pflash-loads BL1+FIP; EL2 enabled so U-Boot's hyp-mode can run.
-    #   * flash0.img absent, IB_HYPERVISOR=avz → bare U-Boot chain, but AVZ
-    #     is an EL2 hypervisor, so QEMU must still expose EL2
-    #     (virtualization=on). No secure world: the two axes are
-    #     independent, and AVZ needs EL2 rather than EL3.
-    #   * flash0.img absent, IB_HYPERVISOR=none → standalone Linux
-    #     (IB_BOOT_CHAIN=uboot). The boot chain is just U-Boot + Linux; QEMU
-    #     `-kernel`-loads the U-Boot ELF (u-boot/u-boot) at EL1 directly.
-    #     EL2 (and EL3) are deliberately disabled — the qemu-arm64 U-Boot
-    #     config expects to run at EL1, and running at EL2 without firmware
-    #     handling PSCI / breaking the bootm path triggers a synchronous
-    #     external abort during AMBA PL011 probe.
+    # How the machine starts is not worked out here: the build knows the boot
+    # chain, so the build states it, in filesystem/boot.conf written by
+    # bsp.bbclass:do_deploy_boot_chain -> bsp_virt64.inc.
+    #
+    # It used to be guessed from which artefacts were lying in filesystem/
+    # plus an IB_HYPERVISOR read out of local.conf. Both were guesses at
+    # something the build already knows: the chain is normalised at parse
+    # time by base.bbclass:ib_normalize_boot_axes, a layer may declare its
+    # own, and the legacy "full" alias expands to a hypervisor that appears
+    # in no .conf file at all. None of that is visible to a shell reading
+    # local.conf.
+    #
+    #   "uboot", "mcuboot"   the first stage is on the card, in the raw area
+    #                        ahead of p1, and the machine's boot ROM reads it
+    #                        from there (bootrom-* machine properties; see
+    #                        virt_bootrom_setup() in qemu/hw/arm/virt.c).
+    #   the ATF chains       BL1 executes in place from address 0, so
+    #                        flash0.img is pflash-mapped and EL3 is exposed.
 
-    if [ -f filesystem/flash0.img ]; then
-        MACHINE_OPT="-M virt,virtualization=on,gic-version=2,secure=on"
-        BOOT_OPT="-drive if=pflash,format=raw,file=filesystem/flash0.img"
-    elif [ "$IB_HYPERVISOR" = "avz" ]; then
-        echo "AVZ guest on the bare U-Boot chain — enabling EL2 (virtualization=on)"
-        MACHINE_OPT="-M virt,gic-version=2,virtualization=on"
-        BOOT_OPT="-kernel u-boot/u-boot"
-    else
-        MACHINE_OPT="-M virt,gic-version=2"
-        BOOT_OPT="-kernel u-boot/u-boot"
+    if [ ! -f filesystem/boot.conf ]; then
+        echo "st.sh: no filesystem/boot.conf — run deploy.sh first" >&2
+        return 1
     fi
+    . ./filesystem/boot.conf
+
+    echo "Boot chain: ${IB_QEMU_CHAIN}"
+    MACHINE_OPT="-M ${IB_QEMU_MACHINE}"
+    BOOT_OPT="${IB_QEMU_BOOT}"
+
+    # virtio-mmio in modern (version 2) mode. QEMU defaults force-legacy=on,
+    # which presents version 1, and Zephyr's virtio_mmio driver implements
+    # only the modern interface — it refuses the device with "Invalid version
+    # 1", so a bootloader never gets the disk its slots live on. U-Boot and
+    # Linux both speak either version, so this costs the other
+    # configurations nothing.
     ${QEMU_BIN} $@ ${USR_OPTION} \
 		-smp 4  \
 		-chardev stdio,id=char0,mux=on,signal=off \
 		-mon chardev=char0 \
 		-serial chardev:char0 \
 		${MACHINE_OPT} -cpu cortex-a72  \
+		-global virtio-mmio.force-legacy=false \
 		${BOOT_OPT} \
 		-device virtio-blk-device,drive=hd0 \
 		-drive if=none,file=filesystem/sdcard.img.virt64,id=hd0,format=raw,file.locking=off \

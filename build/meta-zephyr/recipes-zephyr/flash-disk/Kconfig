@@ -1,0 +1,45 @@
+# Copyright (c) 2026 EDGEMTech SA
+# SPDX-License-Identifier: Apache-2.0
+
+config FLASH_DISK
+	bool "Flash device backed by a block device"
+	default y
+	depends on DT_HAS_EDGEMTECH_FLASH_DISK_ENABLED
+	depends on DISK_ACCESS
+	select FLASH_HAS_DRIVER_ENABLED
+	select FLASH_HAS_PAGE_LAYOUT
+	help
+	  Presents a window of a block device as a flash device, so code
+	  written against the flash API — MCUboot's flash_map above all — can
+	  keep its slots on a disk.
+
+	  Zephyr ships the opposite shim, zephyr,flash-disk, which presents a
+	  flash partition as a disk. There is nothing in this direction, and a
+	  board whose only storage is a disk cannot otherwise give MCUboot a
+	  slot.
+
+config FLASH_DISK_MAX_SECTOR_SIZE
+	int "Largest disk sector the driver will bounce through"
+	default 512
+	depends on FLASH_DISK
+	help
+	  Size of the per-instance scratch buffer used for unaligned access
+	  and for erase. A disk reporting a larger sector than this is
+	  refused at init rather than silently overrunning the buffer.
+
+config FLASH_DISK_INIT_PRIORITY
+	int "Init priority"
+	default 60
+	depends on FLASH_DISK
+	help
+	  Must be higher (later) than the block device this sits on, because
+	  the disk has to be registered with disk_access before flash_disk_init
+	  can call disk_access_init() on it.
+
+	  Not CONFIG_FLASH_INIT_PRIORITY, which is the natural choice for a
+	  flash driver and is wrong here: it defaults to 50, exactly what
+	  CONFIG_KERNEL_INIT_PRIORITY_DEVICE gives the virtio-blk driver, and
+	  at equal priority the order is link order. It came out backwards —
+	  "disk 'VBLK' will not initialise: -22" from both instances, the disk
+	  not being registered yet — and MCUboot then asserted on the flash
+	  area it could not open.

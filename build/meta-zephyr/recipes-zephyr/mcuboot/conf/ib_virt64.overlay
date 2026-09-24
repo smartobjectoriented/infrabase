@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * MCUboot's A/B slots on ib_virt64.
+ *
+ * The board has no flash. QEMU's virt machine offers pflash, and on the
+ * capsule chain ATF already owns it (filesystem/flash0.img carries BL1 and
+ * the FIP), so the only storage left is the virtio-blk disk — which is also
+ * the one the Factory Capsule can write, and that is what a slot has to be
+ * for the chain to mean anything.
+ *
+ * edgemtech,flash-disk (meta-zephyr/recipes-zephyr/flash-disk) presents a
+ * window of that disk as a flash device, so MCUboot's flash_map works
+ * unchanged. Zephyr ships only the opposite shim.
+ *
+ * The windows are p2 and p3 of the sdcard image, as laid out by
+ * fs_arm_common.bbclass with IB_PARTITION_LAYOUT = "ab":
+ *
+ *     p1  FAT   256 MiB  at   1 MiB   uEnv, AVZ ITB, the reloadable capsule
+ *     p2  raw    16 MiB  at 257 MiB   slot 0  (primary)
+ *     p3  raw    16 MiB  at 273 MiB   slot 1  (secondary)
+ *
+ * The offsets are the byte addresses fdisk gives those partitions: it starts
+ * p1 at sector 2048 and the sizes above follow. They are spelled out here
+ * because the driver takes a window, not a partition number — nothing on
+ * this side parses an MBR. Change the layout and these move with it.
+ */
+
+/ {
+	chosen {
+		/* The slots. zephyr,flash is what mcuboot.cmake reads the
+		 * write-block-size from when it signs an image, and
+		 * mcuboot,image-ram is where a RAM-loaded image is put, which
+		 * both sides of the handover have to agree on: MCUboot copies
+		 * there, and imgtool records it in the application's header.
+		 */
+		zephyr,flash = &slot0_flash;
+		zephyr,flash-controller = &slot0_flash;
+		mcuboot,image-ram = &app_ram;
+	};
+
+	/* Where MCUboot RAM-loads the application — the whole signed image,
+	 * header included — and therefore 0x200 BELOW where the application
+	 * is linked, which is 0x48000000. See ib_virt64-payload.overlay.
+	 *
+	 * Inside the domain either way: under AVZ the guest window is the 512
+	 * MiB from 0x41000000 that the guest FDT declares, and without AVZ it
+	 * is plain DRAM.
+	 */
+	app_ram: memory@47fffe00 {
+		compatible = "mmio-sram";
+		reg = <0x0 0x47fffe00 0x0 (DT_SIZE_M(16) + 0x200)>;
+	};
+
+	slot0_flash: flash@10100000 {
+		compatible = "edgemtech,flash-disk";
+		reg = <0x0 0x10100000 0x0 DT_SIZE_M(16)>;
+		disk-name = "VBLK";
+		erase-block-size = <4096>;
+		write-block-size = <4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			/* A slot starts where its partition starts: offset 0
+			 * of the device, which is offset 0 of p2. That is what
+			 * a slot is on a real device, and it is what lets the
+			 * Factory Capsule write one with a plain dd to the
+			 * partition — no layout constant shared between the
+			 * writer and the reader.
+			 */
+			slot0_partition: partition@0 {
+				label = "image-0";
+				reg = <0x00000000 (DT_SIZE_M(16) - DT_SIZE_K(64))>;
+			};
+
+			/* MCUboot itself is loaded into RAM by U-Boot rather
+			 * than executed from a slot, so this entry exists to
+			 * satisfy the layout and is never read. It is here and
+			 * not on p1 because boot_partition has to name a flash
+			 * area, and p1 is a FAT filesystem U-Boot reads, not a
+			 * flash device Zephyr knows. Last, not first, so that
+			 * it does not displace the slot.
+			 */
+			boot_partition: partition@ff0000 {
+				label = "mcuboot";
+				reg = <0x00ff0000 DT_SIZE_K(64)>;
+			};
+		};
+	};
+
+	slot1_flash: flash@11100000 {
+		compatible = "edgemtech,flash-disk";
+		reg = <0x0 0x11100000 0x0 DT_SIZE_M(16)>;
+		disk-name = "VBLK";
+		erase-block-size = <4096>;
+		write-block-size = <4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			/* Same offset as slot 0, on p3 — the two slots are
+			 * interchangeable, which is the whole point of A/B.
+			 */
+			slot1_partition: partition@0 {
+				label = "image-1";
+				reg = <0x00000000 (DT_SIZE_M(16) - DT_SIZE_K(64))>;
+			};
+		};
+	};
+};
+
+/* The disk itself. st.sh attaches the sdcard image with a plain
+ * `-device virtio-blk-device`, which QEMU puts on the last virtio-mmio slot
+ * — 0xa003e00, virtio_mmio31 in the board devicetree.
+ */
+&virtio_mmio31 {
+	status = "okay";
+
+	virtio_blk0: virtio-blk {
+		compatible = "virtio,blk";
+		disk-name = "VBLK";
+		status = "okay";
+	};
+};

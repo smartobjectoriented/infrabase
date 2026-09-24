@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2026 EDGEMTech SA <info@edgemtech.ch>
+ *
+ * MCUboot entered directly by U-Boot, with no hypervisor under it — the
+ * counterpart of virt64_mcuboot_guest.its, which is the same bootloader
+ * started by AVZ at EL1. Both exist because both are real: this one is the
+ * shape a product without AVZ boots, and the one infrabase will want, while
+ * A product tree with a hypervisor normally runs the guest variant.
+ *
+ * Which of the two bsp-zephyr builds follows the same rule as every other
+ * ITS in the tree: the "_avz" suffix on IB_TARGET_ITS. Nothing here needs
+ * to know about the other.
+ *
+ * MCUboot sits at 0x41000000 in this mode as in the other, and it is the
+ * application it RAM-loads that moves, to 0x48000000. The reason is on the
+ * AVZ side — see conf/ib_virt64-payload.overlay — and is taken here too
+ * so that one pair of binaries serves both chains.
+ *
+ * The `compatible` is load-bearing — see virt64.its for why a bare bootm
+ * resolves the configuration through fit_conf_find_compat() and not through
+ * the `default` property.
+ *
+ * Template: ${IB_*} placeholders are expanded to absolute build paths by
+ * bsp_render_its (bsp.bbclass) at do_render_its time.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/dts-v1/;
+
+/ {
+	description = "MCUboot for virt64 (armv8)";
+
+	images {
+
+		zephyr {
+			description = "MCUboot";
+			data = /incbin/("${IB_ZEPHYR_BOOT_IMAGE}");
+			type = "kernel";
+			arch = "arm64";
+			os = "linux";
+			compression = "none";
+			load = <0x41000000>;
+			entry = <0x41000000>;
+		};
+
+		fdt_zephyr {
+			description = "Minimal device tree (U-Boot requirement)";
+			data = /incbin/("${IB_ZEPHYR_FDT}");
+			type = "flat_dt";
+			arch = "arm64";
+			compression = "none";
+			load = <0x50000000>;
+		};
+	};
+
+	configurations {
+		default = "conf_mcuboot";
+
+		conf_mcuboot {
+			description = "MCUboot on virt64";
+			compatible = "linux,dummy-virt";
+			kernel = "zephyr";
+			fdt = "fdt_zephyr";
+		};
+	};
+};

@@ -1,0 +1,6 @@
+board:
+  name: ib_virt64
+  full_name: EDGE-M1 virt64 (QEMU aarch64 virt, GICv2)
+  vendor: qemu
+  socs:
+    - name: qemu_cortex_a53

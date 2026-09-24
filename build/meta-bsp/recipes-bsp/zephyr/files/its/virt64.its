@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2026 EDGEMTech SA
+ *
+ * Bare Zephyr ITS for QEMU virt64 — the Zephyr counterpart of
+ * recipes-bsp/linux/files/its/virt64.its. Pairs with IB_BOOT_CHAIN=
+ * "uboot": QEMU loads the U-Boot ELF directly, U-Boot bootm's this ITB,
+ * and Zephyr runs on the bare metal. No ATF, no OP-TEE, no AVZ.
+ *
+ * Template: ${IB_*} placeholders are expanded to absolute build paths by
+ * bsp_render_its (bsp.bbclass) at do_render_its time.
+ *
+ * Two things this file exists to record, both learned against the tree's
+ * own U-Boot 2022.04:
+ *
+ *  1. The `compatible` in the configuration node is load-bearing. This
+ *     U-Boot is built with CONFIG_FIT_BEST_MATCH, so boot_get_kernel()
+ *     (boot/image-fit.c) resolves a bare `bootm <addr>` through
+ *     fit_conf_find_compat() against the control FDT — the `default`
+ *     property is not consulted on that path. Without a matching
+ *     compatible the boot dies with "Could not find configuration node".
+ *     "linux,dummy-virt" is what QEMU's virt machine reports.
+ *
+ *  2. The FDT image is required even though Zephyr never reads it. See
+ *     virt64_fdt.dts for why, and why it is a local blob rather than the
+ *     Linux build's.
+ *
+ * Load addresses follow the existing virt64 map: Zephyr at 0x41000000,
+ * matching CONFIG_SRAM_BASE_ADDRESS of the ib_virt64 board, and the
+ * FDT at 0x50000000.
+ */
+
+/dts-v1/;
+
+/ {
+	description = "Zephyr RTOS for virt64 (armv8) environment";
+
+	images {
+
+		zephyr {
+			description = "Zephyr RTOS";
+			data = /incbin/("${IB_ZEPHYR_IMAGE}");
+			type = "kernel";
+			arch = "arm64";
+			os = "linux";
+			compression = "none";
+			load = <0x41000000>;
+			entry = <0x41000000>;
+		};
+
+		fdt_zephyr {
+			description = "Minimal device tree (U-Boot requirement)";
+			data = /incbin/("${IB_ZEPHYR_FDT}");
+			type = "flat_dt";
+			arch = "arm64";
+			compression = "none";
+			load = <0x50000000>;
+		};
+	};
+
+	configurations {
+		default = "conf_zephyr";
+
+		conf_zephyr {
+			description = "Zephyr on virt64";
+			compatible = "linux,dummy-virt";
+			kernel = "zephyr";
+			fdt = "fdt_zephyr";
+		};
+	};
+};
