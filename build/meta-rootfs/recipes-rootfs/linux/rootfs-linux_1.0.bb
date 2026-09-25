@@ -22,8 +22,8 @@ do_configure[noexec] = "1"
 do_build[depends] = "${IB_ROOTFS_METHOD}:do_build"
 do_build[depends] += "linux:do_build"
 
-# do_deploy extracts rootfs.cpio (apps baked in by usr-linux:do_deploy),
-# copies it onto p2 and repacks it.
+# do_deploy extracts rootfs.cpio, copies it onto p2 and repacks it. The usr
+# apps are copied on top afterwards by usr-linux:do_deploy.
 #
 # It DOES depend on ${IB_ROOTFS_METHOD}:do_build, and that dependency is
 # load-bearing rather than a leftover: nothing else orders this task after
