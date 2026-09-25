@@ -146,10 +146,14 @@ do_install_apps () {
     usr_do_install_file_root "${IB_TARGET}/src/modules/*.ko"
 }
 
-do_clean:append () {
+# usr.bbclass defines do_clean in Python, and a shell :append is pasted
+# verbatim into that Python function, so `-c clean` died on a SyntaxError.
+# The shell stays shell, in its own function, called from a Python append.
+usr_linux_clean () {
     
-    # Clean the modules
-    if [ -d ${IB_TARGET}/src/modules ]; then
+    # Clean the modules — only when there is a kernel tree to clean them
+    # against; before the first linux build there is nothing to clean.
+    if [ -d ${IB_TARGET}/src/modules ] && [ -d ${IB_LINUX_PATH} ]; then
 	    make -C ${IB_LINUX_PATH} M=${IB_TARGET}/src/modules clean
     fi
     
@@ -165,4 +169,8 @@ do_clean:append () {
 	
    # Clean the user space apps
    rm -rf ${IB_TARGET}/build
+}
+
+python do_clean:append () {
+    bb.build.exec_func('usr_linux_clean', d)
 }
