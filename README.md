@@ -16,8 +16,8 @@ from upstream and patched from tracked patchsets, the root filesystem comes from
 buildroot rather than a full distribution, and a handful of shell scripts in
 `scripts/` cover the day-to-day loop.
 
-📖 **[Sphinx documentation](https://edgemtech.github.io/infrabase/index.html)** —
-start with the [user guide](https://edgemtech.github.io/infrabase/user_guide.html);
+📖 **[Sphinx documentation](https://smartobjectoriented.github.io/infrabase/index.html)** —
+start with the [user guide](https://smartobjectoriented.github.io/infrabase/user_guide.html);
 it is also in `doc/` and builds with `make -C doc html`.
 
 ## Quick start
@@ -110,7 +110,7 @@ doc/                    this documentation (Sphinx)
 ## Contributing
 
 Work on a branch, one topic per branch, and open a pull request; see the
-[development flow](https://edgemtech.github.io/infrabase/dev_flow.html) and the
-[coding conventions](https://edgemtech.github.io/infrabase/coding_conventions.html).
+[development flow](https://smartobjectoriented.github.io/infrabase/dev_flow.html) and the
+[coding conventions](https://smartobjectoriented.github.io/infrabase/coding_conventions.html).
 
 Licensed under the GNU General Public License v2 — see [LICENSE](LICENSE).
