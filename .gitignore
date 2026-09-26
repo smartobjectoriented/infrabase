@@ -28,6 +28,23 @@ build/cache
 # below keeps untracked — a rule there would never leave this machine.
 /filesystem/boot.conf
 
+# What a build and a deploy produce, anchored so that nothing tracked beside
+# them is hidden: the storage image and the boot-chain artefacts deploy.sh
+# writes into filesystem/, the buildroot output and the links to it under
+# linux/rootfs/, and the user-space sources the :lvgl patch set materialises
+# in linux/usr/src/ (the patch set is the source; these are regenerated and
+# would make do_patch refuse to re-create them once committed).
+/filesystem/sdcard.img.*
+/filesystem/work
+/filesystem/*.bin
+/filesystem/flash0.img
+/linux/rootfs/Makefile
+/linux/rootfs/board
+/linux/rootfs/fs
+/linux/rootfs/staging
+/linux/usr/src/graphic/
+/linux/usr/src/lvgl/
+
 # TEZI HTTP feed published by deploy.sh, plus the feed server's pid/log, and
 # the makeusr.sh local deploy. Deliberately outside build/tmp so a clean does
 # not wipe a feed a board may be installing from.

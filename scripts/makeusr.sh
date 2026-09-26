@@ -11,6 +11,9 @@
 # Copyright (c) 2026 Daniel Rossier, REDS Institute - HEIG-VD
 #
 
+# Release banner, once per invocation (see scripts/common/banner.sh).
+. "$(cd "$(dirname "$(command -v -- "$0")")" && pwd)/common/banner.sh"
+
 set -euo pipefail
 
 # The script operates on the *current directory* (so it can live in ~/scripts),
