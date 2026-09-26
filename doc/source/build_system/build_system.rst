@@ -122,7 +122,8 @@ invocation, so adding a layer is a one-line change there rather than a hand edit
        ``avz`` recipe, not the SO3 kernel.
 
 Which of ``atf``, ``optee`` and ``avz`` a given build actually compiles is decided
-by ``IB_BOOT_CHAIN`` / ``IB_HYPERVISOR`` at the dependency level (``bsp.bbclass``),
+by ``IB_BOOT_CHAIN`` at the dependency level (``bsp.bbclass``, through the
+``IB_CHAIN_HAS_<STAGE>`` flags derived from it),
 not by adding and removing layers — the layer set is the same for every build.
 
 Let's focus on the **meta-linux** layer as an example.

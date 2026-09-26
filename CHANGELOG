@@ -1,0 +1,37 @@
+
+v1.0.0 (26 sep 2026)
+
+First release of Infrabase, and the first line with a release branch
+(release/v1.0). It is the build system the SO3, EDGE-M1, MICOFE and course
+trees are aligned on, as it stood once that alignment was done.
+
+	•	A minimal Linux system built with BitBake: U-Boot, the kernel, a
+		buildroot root filesystem and the user-space applications, for QEMU
+		virt64 and virt32, the Raspberry Pi 4 (64 and 32-bit), the Toradex
+		Verdin iMX8M Plus and x86 QEMU. Components are fetched from upstream
+		and patched from tracked patch sets; the attach guard refuses to
+		overwrite local edits, and updiff folds them back into the set.
+
+	•	The boot chain is one ordered value, IB_BOOT_CHAIN, over the stages
+		atf, optee, uboot, avz and mcuboot: Linux on a bare U-Boot, with ATF,
+		with an OP-TEE secure world, or as a guest of the AVZ hypervisor at
+		EL2. The order is checked, everything else (IB_HYPERVISOR, the stage
+		flags, the ITS) is derived from it, and each platform declares the
+		stages it can run, so an impossible combination is refused at parse
+		time.
+
+	•	Deployment to an SD-card image, a real device or a Toradex Easy
+		Installer network feed served from the tree. The deploy writes
+		filesystem/boot.conf, and st.sh starts QEMU from it. On virt64 U-Boot
+		can be read off the card by the QEMU boot ROM
+		(IB_FIRST_STAGE_FROM_CARD). The user space goes where the running
+		root is: into the ramfs, or onto the rootfs partition.
+
+	•	A containerised build environment (dbuild.sh): the cross toolchains and
+		every host package in one image, the tree bind-mounted, the build run
+		as the calling user.
+
+	•	Every script prints the release it belongs to when it starts,
+		"[infrabase v1.0.0] build.sh bsp-linux", from the git tag
+		(scripts/ibversion.sh); the documentation derives its version from the
+		same helper.
