@@ -1,0 +1,685 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3. User Guide &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4. Containerised build environment" href="container.html" />
+    <link rel="prev" title="2.1. Linux user applications (usr)" href="rootfs/linux_usr.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rootfs/rootfs.html">2. User applications and rootfs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. User guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-a-build-environment">3.1. Getting a build environment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-container-recommended">3.1.1. Using the container (recommended)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-on-the-host">3.1.2. Building on the host</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#toolchains">3.1.2.1. Toolchains</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-environment-env-sh">3.2. The environment — <code class="docutils literal notranslate"><span class="pre">env.sh</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">3.3. Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#platforms">3.3.1. Platforms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-gets-built-the-boot-chain">3.3.2. What gets built: the boot chain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-variables">3.3.3. Key variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#building">3.4. Building</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-a-task-by-hand">3.4.1. Running a task by hand</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#storage">3.5. Storage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#editing-an-archive-instead-of-the-storage">3.5.1. Editing an archive instead of the storage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#deployment">3.6. Deployment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#network-install-http-mode">3.6.1. Network install (<code class="docutils literal notranslate"><span class="pre">http</span></code> mode)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-emulated-system">3.7. Running the emulated system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-space-applications">3.8. User space applications</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">4. Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build_system/build_system.html">5. Build System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_flow.html">6. Development  flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base_extension/base_extension.html">7. Base environnement extension for Infrabase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3. </span>User Guide</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="user-guide">
+<span id="id1"></span><h1><span class="section-number">3. </span>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading"></a></h1>
+<p>This chapter is the day-to-day reference: how to get a build environment, how to
+configure the target, and how to build, deploy and run a system. The concepts
+behind the build system (layers, recipes, tasks, patchsets) are described in the
+<a class="reference internal" href="build_system/build_system.html#build-system"><span class="std std-ref">build system chapter</span></a>.</p>
+<p>Everything below assumes an x86_64 Linux host. Ubuntu 24.04 is what the build is
+validated on, but the <a class="reference internal" href="container.html#container"><span class="std std-ref">container</span></a> makes the host distribution
+mostly irrelevant.</p>
+<section id="getting-a-build-environment">
+<h2><span class="section-number">3.1. </span>Getting a build environment<a class="headerlink" href="#getting-a-build-environment" title="Link to this heading"></a></h2>
+<p>There are two ways to get one, and they are interchangeable: the tree is built at
+its own absolute path in both cases, so you can switch back and forth without
+invalidating BitBake stamps or CMake caches.</p>
+<section id="using-the-container-recommended">
+<h3><span class="section-number">3.1.1. </span>Using the container (recommended)<a class="headerlink" href="#using-the-container-recommended" title="Link to this heading"></a></h3>
+<p>The container carries the <em>environment</em> — cross toolchains, host packages,
+Python — and no project source. The repository stays on the host, bind-mounted at
+its own path, and the build runs as your own user, so nothing comes back
+root-owned.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>scripts/dbuild.sh<span class="w"> </span>--build<span class="w">              </span><span class="c1"># build the image, once</span>
+$<span class="w"> </span>scripts/dbuild.sh<span class="w"> </span>build.sh<span class="w"> </span>bsp-linux<span class="w">   </span><span class="c1"># run a build inside it</span>
+$<span class="w"> </span>scripts/dbuild.sh<span class="w">                      </span><span class="c1"># interactive shell, env.sh sourced</span>
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="container.html#container"><span class="std std-ref">container chapter</span></a> for the details, including what
+cannot be done from inside (running the emulator’s GUI, mounts outliving the
+command).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The container also solves a class of host problems for good: it carries its
+own <code class="docutils literal notranslate"><span class="pre">sudo</span></code> configuration, so a host whose PAM stack interferes with
+<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-v</span></code> (a fingerprint reader, for instance) can still run
+<code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">bsp-linux</span></code> and <code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code>.</p>
+</div>
+</section>
+<section id="building-on-the-host">
+<h3><span class="section-number">3.1.2. </span>Building on the host<a class="headerlink" href="#building-on-the-host" title="Link to this heading"></a></h3>
+<p>The build requires the <strong>bash</strong> shell.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>On Ubuntu, <code class="docutils literal notranslate"><span class="pre">/bin/sh</span></code> points at <code class="docutils literal notranslate"><span class="pre">dash</span></code>, which does not share bash’s
+syntax. If you invoke the scripts through <code class="docutils literal notranslate"><span class="pre">sh</span></code>, see
+<a class="reference external" href="https://askubuntu.com/questions/1064773/how-can-i-make-bin-sh-point-to-bin-bash">this procedure</a>.</p>
+</div>
+<p>The authoritative list of host packages is
+<code class="docutils literal notranslate"><span class="pre">docker/build-env/packages.txt</span></code> — the same file the container image installs,
+one package per line with comments explaining why each group is there. Install it
+with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>sed<span class="w"> </span>-e<span class="w"> </span><span class="s1">'s/#.*//'</span><span class="w"> </span>-e<span class="w"> </span><span class="s1">'/^[[:space:]]*$/d'</span><span class="w"> </span>docker/build-env/packages.txt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y
+</pre></div>
+</div>
+<p>That list covers BitBake, the boot images, the storage tooling, the rootfs
+pipeline, CMake for the user space, QEMU (building <em>and</em> running it) and Sphinx
+for this documentation.</p>
+<section id="toolchains">
+<h4><span class="section-number">3.1.2.1. </span>Toolchains<a class="headerlink" href="#toolchains" title="Link to this heading"></a></h4>
+<p>The 32-bit cross toolchain comes from apt and is in the list above
+(<code class="docutils literal notranslate"><span class="pre">gcc-arm-linux-gnueabihf</span></code>, matching <code class="docutils literal notranslate"><span class="pre">IB_TOOLCHAIN:arm</span></code>). The 64-bit one is
+<strong>not</strong> interchangeable with Ubuntu’s: the recipes pin the prefix
+<code class="docutils literal notranslate"><span class="pre">aarch64-none-linux-gnu-</span></code>, while <code class="docutils literal notranslate"><span class="pre">gcc-aarch64-linux-gnu</span></code> installs
+<code class="docutils literal notranslate"><span class="pre">aarch64-linux-gnu-</span></code>. Install the official Arm toolchain (12.3.rel1 is the
+version the build is validated with, and the one the container ships):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/toolchains<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/opt/toolchains
+$<span class="w"> </span>sudo<span class="w"> </span>curl<span class="w"> </span>-fSLO<span class="w"> </span><span class="s2">"https://developer.arm.com/-/media/Files/downloads/gnu/12.3.rel1/binrel/arm-gnu-toolchain-12.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"</span>
+$<span class="w"> </span>sudo<span class="w"> </span>tar<span class="w"> </span>xf<span class="w"> </span>arm-gnu-toolchain-12.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+$<span class="w"> </span>sudo<span class="w"> </span>mv<span class="w"> </span>arm-gnu-toolchain-12.3.rel1-x86_64-aarch64-none-linux-gnu<span class="w"> </span>aarch64-none-linux-gnu
+$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'export PATH="${PATH}:/opt/toolchains/aarch64-none-linux-gnu/bin"'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/profile.d/02-toolchains.sh
+</pre></div>
+</div>
+<p>If the toolchain lives somewhere else, point <code class="docutils literal notranslate"><span class="pre">IB_TOOLCHAIN_PATH</span></code> at its
+<code class="docutils literal notranslate"><span class="pre">bin/</span></code> directory instead; <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> appends it to <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p>
+</section>
+</section>
+</section>
+<section id="the-environment-env-sh">
+<h2><span class="section-number">3.2. </span>The environment — <code class="docutils literal notranslate"><span class="pre">env.sh</span></code><a class="headerlink" href="#the-environment-env-sh" title="Link to this heading"></a></h2>
+<p>Sourcing <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> from the top of the tree is required before anything else:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>.<span class="w"> </span>./env.sh
+</pre></div>
+</div>
+<p>It exports <code class="docutils literal notranslate"><span class="pre">IB_ROOT_DIR</span></code> and <code class="docutils literal notranslate"><span class="pre">BUILDDIR</span></code>, and puts <code class="docutils literal notranslate"><span class="pre">scripts/</span></code> and the
+bundled <code class="docutils literal notranslate"><span class="pre">bitbake</span></code> on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> — which is what lets you invoke a
+<a class="reference internal" href="glossary.html#term-Standard-script"><span class="xref std std-term">standard script</span></a> from anywhere inside the tree. It also <em>removes</em> the
+previous tree’s entries, so moving between two checkouts leaves no stale paths.</p>
+<p>Every script prints a banner on stderr naming the tree and the platform it is
+about to act on:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[infrabase] bsp-linux  root=/home/user/infrabase  platform=virt64
+</pre></div>
+</div>
+<p>It is worth a glance: the scripts resolve the <em>target tree</em> from the current
+directory (falling back to their own location), so running a script from another
+checkout prompts you before switching, and refuses outright when
+non-interactive.</p>
+</section>
+<section id="configuration">
+<h2><span class="section-number">3.3. </span>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>The project configuration lives in <code class="docutils literal notranslate"><span class="pre">build/conf/local.conf</span></code>. All project
+variables use the <code class="docutils literal notranslate"><span class="pre">IB_</span></code> prefix, and BitBake’s override syntax
+<code class="docutils literal notranslate"><span class="pre">VAR:&lt;override&gt;</span></code> scopes a value to a platform or a component. Read the comments
+in the file — they carry the reasoning behind each default.</p>
+<p>A second, <strong>untracked</strong> file is read <em>after</em> it: <code class="docutils literal notranslate"><span class="pre">build/conf/site.conf</span></code>. That is
+where a single machine deviates from the tracked defaults, without dirtying the
+repository. It is absent on most machines.</p>
+<section id="platforms">
+<h3><span class="section-number">3.3.1. </span>Platforms<a class="headerlink" href="#platforms" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">IB_PLATFORM</span></code> selects the target platform (BitBake calls it the <em>machine</em>):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Platform</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>virt64</em></p></td>
+<td><p>QEMU <code class="docutils literal notranslate"><span class="pre">virt</span></code>, 64-bit (aarch64) — <strong>the default</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><em>virt32</em></p></td>
+<td><p>QEMU <code class="docutils literal notranslate"><span class="pre">virt</span></code>, 32-bit (arm)</p></td>
+</tr>
+<tr class="row-even"><td><p><em>rpi4_64</em></p></td>
+<td><p>Raspberry Pi 4 in 64-bit mode</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>rpi4</em></p></td>
+<td><p>Raspberry Pi 4 in 32-bit mode</p></td>
+</tr>
+<tr class="row-even"><td><p><em>x86-qemu</em></p></td>
+<td><p>QEMU x86 platform</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><em>verdin-imx8mp</em></p></td>
+<td><p>Toradex Verdin iMX8M Plus, installed over the network with TEZI</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>After changing <code class="docutils literal notranslate"><span class="pre">IB_PLATFORM</span></code>, rebuild <em>and</em> redeploy. Component trees are
+attached in place, so a stale kernel or buildroot <code class="docutils literal notranslate"><span class="pre">.config</span></code> from the previous
+platform can survive; <code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">-c</span> <span class="pre">&lt;recipe&gt;</span></code> forces a clean re-attach.</p>
+</div>
+</section>
+<section id="what-gets-built-the-boot-chain">
+<span id="boot-axes"></span><h3><span class="section-number">3.3.2. </span>What gets built: the boot chain<a class="headerlink" href="#what-gets-built-the-boot-chain" title="Link to this heading"></a></h3>
+<p>Infrabase builds four components — <strong>ATF</strong>, <strong>OP-TEE</strong>, <strong>AVZ</strong> and <strong>Linux</strong>.
+Which of them end up in an image is decided by one variable in
+<code class="docutils literal notranslate"><span class="pre">build/conf/local.conf</span></code>, <code class="docutils literal notranslate"><span class="pre">IB_BOOT_CHAIN</span></code>: the stages that run before the
+payload, <strong>in the order they run</strong>, joined by <code class="docutils literal notranslate"><span class="pre">+</span></code>:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16.0%" />
+<col style="width: 84.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Stage</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">atf</span></code></p></td>
+<td><p>ARM Trusted Firmware (BL1/BL2/BL31).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">optee</span></code></p></td>
+<td><p>OP-TEE as BL32, a secure world. Needs <code class="docutils literal notranslate"><span class="pre">atf</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uboot</span></code></p></td>
+<td><p>U-Boot.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">avz</span></code></p></td>
+<td><p>The AVZ hypervisor at EL2, entered by U-Boot, with Linux as its guest.
+Needs <code class="docutils literal notranslate"><span class="pre">uboot</span></code>, after it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mcuboot</span></code></p></td>
+<td><p>MCUboot, which picks an image out of a flash slot and runs it.</p></td>
+</tr>
+</tbody>
+</table>
+<p>So <code class="docutils literal notranslate"><span class="pre">uboot</span></code> is Linux on a bare U-Boot, <code class="docutils literal notranslate"><span class="pre">atf+optee+uboot</span></code> adds a secure world,
+<code class="docutils literal notranslate"><span class="pre">uboot+avz</span></code> runs Linux as an AVZ guest with no secure world (QEMU’s
+<code class="docutils literal notranslate"><span class="pre">virtualization=on</span></code> gives EL2 without one), and <code class="docutils literal notranslate"><span class="pre">atf+optee+uboot+avz</span></code> has
+both. The order is checked, not just the spelling — <code class="docutils literal notranslate"><span class="pre">atf+avz+uboot</span></code> is
+refused — and a chain must contain <code class="docutils literal notranslate"><span class="pre">uboot</span></code> or <code class="docutils literal notranslate"><span class="pre">mcuboot</span></code>, or nothing can
+enter the payload.</p>
+<p>Everything else about the boot shape is <strong>derived</strong> from that one value by
+<code class="docutils literal notranslate"><span class="pre">ib_normalize_boot_axes</span></code> (<code class="docutils literal notranslate"><span class="pre">meta/classes/base.bbclass</span></code>): <code class="docutils literal notranslate"><span class="pre">IB_HYPERVISOR</span></code>
+(<code class="docutils literal notranslate"><span class="pre">avz</span></code> when the chain carries the stage, <code class="docutils literal notranslate"><span class="pre">none</span></code> otherwise), the
+<code class="docutils literal notranslate"><span class="pre">IB_CHAIN_HAS_&lt;STAGE&gt;</span></code> flags the recipes gate on, and which ITS is assembled.
+Nothing else has to be set, and nothing can disagree with it.</p>
+<p>What each platform can run is declared as a set of stages,
+<code class="docutils literal notranslate"><span class="pre">IB_BOOT_STAGES_SUPPORTED:&lt;platform&gt;</span></code> (plus <code class="docutils literal notranslate"><span class="pre">IB_BOOT_STAGES_REQUIRED</span></code> where a
+stage is mandatory):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 38.0%" />
+<col style="width: 38.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Platform</p></th>
+<th class="head"><p>Supported stages</p></th>
+<th class="head"><p>Required</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>virt64</em></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">atf</span> <span class="pre">optee</span> <span class="pre">uboot</span> <span class="pre">avz</span> <span class="pre">mcuboot</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>verdin-imx8mp</em></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">atf</span> <span class="pre">optee</span> <span class="pre">uboot</span> <span class="pre">avz</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">atf</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><em>rpi4_64</em></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">atf</span> <span class="pre">uboot</span> <span class="pre">avz</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>rpi4</em>, <em>virt32</em>, <em>x86-qemu</em></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uboot</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+</tbody>
+</table>
+<p>A missing stage is a hardware or upstream limit, not an omission, and each one
+is explained next to <code class="docutils literal notranslate"><span class="pre">IB_BOOT_STAGES_SUPPORTED</span></code> in <code class="docutils literal notranslate"><span class="pre">build/conf/local.conf</span></code>.
+In short: the i.MX8MP boot ROM always installs BL31, so there is no chain
+without <code class="docutils literal notranslate"><span class="pre">atf</span></code> on the Verdin; TF-A’s <code class="docutils literal notranslate"><span class="pre">rpi4</span></code> port is AArch64-only, so the
+32-bit Pi has no ATF; OP-TEE has no <code class="docutils literal notranslate"><span class="pre">plat-rpi4</span></code> upstream and the BCM2711 has
+no secure memory controller, so a secure world on either Pi could never be a
+real TEE; and AVZ ships aarch64 defconfigs only, so the 32-bit platforms are
+standalone-Linux only.</p>
+<p>Asking for a stage the platform cannot run is refused at parse time, naming
+what it does support:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ERROR</span><span class="p">:</span> <span class="n">Platform</span> <span class="s2">"rpi4_64"</span> <span class="n">cannot</span> <span class="n">run</span> <span class="n">boot</span> <span class="n">stage</span> <span class="s2">"optee"</span> <span class="p">(</span><span class="n">IB_BOOT_CHAIN</span><span class="o">=</span><span class="s2">"atf+optee+uboot"</span><span class="p">)</span><span class="o">.</span>
+       <span class="n">Supported</span> <span class="n">on</span> <span class="n">this</span> <span class="n">platform</span><span class="p">:</span> <span class="n">atf</span> <span class="n">uboot</span> <span class="n">avz</span><span class="o">.</span>
+       <span class="n">See</span> <span class="n">IB_BOOT_STAGES_SUPPORTED</span> <span class="ow">in</span> <span class="n">build</span><span class="o">/</span><span class="n">conf</span><span class="o">/</span><span class="n">local</span><span class="o">.</span><span class="n">conf</span> <span class="k">for</span> <span class="n">why</span><span class="o">.</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">IB_TARGET_ITS</span></code> is <em>derived</em> from the chain — <code class="docutils literal notranslate"><span class="pre">&lt;plat&gt;</span></code> without <code class="docutils literal notranslate"><span class="pre">avz</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&lt;plat&gt;_avz</span></code> with it — so the boot image always matches the requested
+shape. Set it explicitly only for a hand-written ITS.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">IB_BOOT_CHAIN</span> <span class="pre">=</span> <span class="pre">&quot;full&quot;</span></code> is still accepted as a legacy alias for
+<code class="docutils literal notranslate"><span class="pre">atf+optee+uboot+avz</span></code> (the edge-m1 capsule chain), so a tree aligning onto
+this one keeps building unchanged.</p>
+</div>
+</section>
+<section id="key-variables">
+<h3><span class="section-number">3.3.3. </span>Key variables<a class="headerlink" href="#key-variables" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 34.0%" />
+<col style="width: 66.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_PLATFORM</span></code></p></td>
+<td><p>Target platform, see above.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_CONFIG:linux:&lt;plat&gt;</span></code></p></td>
+<td><p>Kernel defconfig, e.g. <code class="docutils literal notranslate"><span class="pre">virt64_defconfig</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_TARGET_ITS:linux:&lt;plat&gt;</span></code></p></td>
+<td><p>ITS basename used to build the FIT image (<code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.itb</span></code>). Derived from
+the boot chain; override only for a hand-written ITS.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_BOOT_CHAIN</span></code></p></td>
+<td><p>The ordered boot stages, e.g. <code class="docutils literal notranslate"><span class="pre">uboot</span></code> (default), <code class="docutils literal notranslate"><span class="pre">uboot+avz</span></code>,
+<code class="docutils literal notranslate"><span class="pre">atf+optee+uboot</span></code>. See <a class="reference internal" href="#boot-axes"><span class="std std-ref">What gets built: the boot chain</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_HYPERVISOR</span></code></p></td>
+<td><p><strong>Derived</strong> from <code class="docutils literal notranslate"><span class="pre">IB_BOOT_CHAIN</span></code> (<code class="docutils literal notranslate"><span class="pre">avz</span></code> or <code class="docutils literal notranslate"><span class="pre">none</span></code>); do not set it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_CONFIG:avz:&lt;plat&gt;</span></code></p></td>
+<td><p>AVZ defconfig, e.g. <code class="docutils literal notranslate"><span class="pre">virt64_avz_defconfig</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_RAMFS_SOURCE</span></code></p></td>
+<td><p>Which cpio becomes the embedded ramfs: <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> (default, the freshly
+built buildroot rootfs) or <code class="docutils literal notranslate"><span class="pre">initrd</span></code> (the small tracked busybox ramfs).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_STORAGE_MODE:&lt;plat&gt;</span></code></p></td>
+<td><p>Where a deploy writes: <code class="docutils literal notranslate"><span class="pre">soft</span></code> loopback image, <code class="docutils literal notranslate"><span class="pre">hard</span></code> real device,
+<code class="docutils literal notranslate"><span class="pre">http</span></code> network install; <code class="docutils literal notranslate"><span class="pre">remote</span></code>/<code class="docutils literal notranslate"><span class="pre">local</span></code> also exist.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_STORAGE_DEVICE:&lt;plat&gt;</span></code></p></td>
+<td><p>Device for <code class="docutils literal notranslate"><span class="pre">hard</span></code> mode, without <code class="docutils literal notranslate"><span class="pre">/dev/</span></code>. <strong>No default on purpose</strong> —
+a wrong one could overwrite a host disk.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_ROOTFS_METHOD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">buildroot</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">debootstrap</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_ROOTFS_SIZE</span></code></p></td>
+<td><p>Storage image size, default <code class="docutils literal notranslate"><span class="pre">2G</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_ROOTFS_PARTITION:&lt;plat&gt;</span></code></p></td>
+<td><p>Partition holding the rootfs (<code class="docutils literal notranslate"><span class="pre">p2</span></code> on ARM, <code class="docutils literal notranslate"><span class="pre">p1</span></code> on <em>x86-qemu</em>).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_PLAT_CPU</span></code>, <code class="docutils literal notranslate"><span class="pre">IB_TOOLCHAIN</span></code></p></td>
+<td><p>Architecture and cross-compiler prefix per platform.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_BUILD_QEMU</span></code></p></td>
+<td><p>Set to <code class="docutils literal notranslate"><span class="pre">&quot;0&quot;</span></code> to stop a BSP build from bootstrapping QEMU.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_HTTP_DEPLOY_PATH</span></code></p></td>
+<td><p>Where an <code class="docutils literal notranslate"><span class="pre">http</span></code> deploy publishes its files; defaults inside the tree
+(<code class="docutils literal notranslate"><span class="pre">build/deploy/tezi/&lt;plat&gt;</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_HTTP_FEED_PORT</span></code></p></td>
+<td><p>Port <code class="docutils literal notranslate"><span class="pre">tezi-feed-serve.sh</span></code> listens on, default <code class="docutils literal notranslate"><span class="pre">8080</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_FORCE_ATTACH</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code> overrides the dirty-tree guard on <code class="docutils literal notranslate"><span class="pre">do_attach_infrabase</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="building">
+<h2><span class="section-number">3.4. </span>Building<a class="headerlink" href="#building" title="Link to this heading"></a></h2>
+<p>Components are built with the <code class="docutils literal notranslate"><span class="pre">build.sh</span></code> <a class="reference internal" href="glossary.html#term-Standard-script"><span class="xref std std-term">standard script</span></a>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>build.sh [-h] [-l] [-c] [-v] [-x] &lt;recipe&gt;
+</pre></div>
+</div>
+<p>The <strong>recipe name is a positional argument</strong>. The <code class="docutils literal notranslate"><span class="pre">-x</span></code> flag is an optional,
+no-op marker kept for explicitness — <code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">bsp-linux</span></code> and
+<code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">-x</span> <span class="pre">bsp-linux</span></code> are equivalent. Options come <em>before</em> the recipe.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-l</span></code></p></td>
+<td><p>List all available recipes (BSPs and components).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-c</span></code></p></td>
+<td><p>Clean the recipe first (<code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">clean</span></code>), then rebuild.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-v</span></code></p></td>
+<td><p>Verbose build logs (<code class="docutils literal notranslate"><span class="pre">-vDDD</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-x</span></code></p></td>
+<td><p>Optional “build this recipe” marker (recipe stays positional).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-h</span></code></p></td>
+<td><p>Print help.</p></td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>BSP recipe</strong> (<code class="docutils literal notranslate"><span class="pre">bsp-linux</span></code>) pulls its whole dependency tree; a <strong>component</strong>
+recipe (<code class="docutils literal notranslate"><span class="pre">uboot</span></code>, <code class="docutils literal notranslate"><span class="pre">linux</span></code>, <code class="docutils literal notranslate"><span class="pre">rootfs-linux</span></code>, <code class="docutils literal notranslate"><span class="pre">buildroot</span></code>, <code class="docutils literal notranslate"><span class="pre">usr-linux</span></code>,
+<code class="docutils literal notranslate"><span class="pre">qemu</span></code>, <code class="docutils literal notranslate"><span class="pre">filesystem</span></code>, <code class="docutils literal notranslate"><span class="pre">atf</span></code>, <code class="docutils literal notranslate"><span class="pre">optee</span></code>) builds just itself.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>build.sh<span class="w"> </span>bsp-linux<span class="w">          </span><span class="c1"># full Linux BSP (kernel + rootfs + user space + FIT)</span>
+$<span class="w"> </span>build.sh<span class="w"> </span>linux<span class="w">              </span><span class="c1"># rebuild just the kernel</span>
+$<span class="w"> </span>build.sh<span class="w"> </span>-c<span class="w"> </span>uboot<span class="w">           </span><span class="c1"># clean + rebuild u-boot</span>
+$<span class="w"> </span>build.sh<span class="w"> </span>-v<span class="w"> </span>-c<span class="w"> </span>bsp-linux<span class="w">    </span><span class="c1"># clean + rebuild everything, verbose</span>
+$<span class="w"> </span>build.sh<span class="w"> </span>-l<span class="w">                 </span><span class="c1"># list all recipes</span>
+</pre></div>
+</div>
+<p>On the QEMU platforms (<em>virt32</em>, <em>virt64</em>), a BSP build also <strong>builds the
+emulator when its binary is missing</strong>, so a fresh tree is runnable with <code class="docutils literal notranslate"><span class="pre">st.sh</span></code>
+right away. This is a bootstrap only: an already-built emulator is left
+untouched, and the QEMU-hacking loop stays the explicit <code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">qemu</span></code>. Set
+<code class="docutils literal notranslate"><span class="pre">IB_BUILD_QEMU</span> <span class="pre">=</span> <span class="pre">&quot;0&quot;</span></code> in <code class="docutils literal notranslate"><span class="pre">local.conf</span></code> to skip it — useful in CI, which builds
+and deploys but never runs the emulator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">bitbake</span></code> itself runs <strong>unprivileged</strong>. The build steps that need root
+(<code class="docutils literal notranslate"><span class="pre">filesystem</span></code> creating the image, <code class="docutils literal notranslate"><span class="pre">bsp-linux</span></code> loop-mounting the rootfs)
+escalate individual commands via <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-n</span></code> against a timestamp the script
+opens once — you are prompted for your password at most once per invocation.</p>
+</div>
+<section id="running-a-task-by-hand">
+<h3><span class="section-number">3.4.1. </span>Running a task by hand<a class="headerlink" href="#running-a-task-by-hand" title="Link to this heading"></a></h3>
+<p>Tasks normally run through the dependency graph, but any single one can be
+invoked from the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory, <em>without</em> the <code class="docutils literal notranslate"><span class="pre">do_</span></code> prefix:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>bitbake<span class="w"> </span>linux<span class="w"> </span>-c<span class="w"> </span>patch
+$<span class="w"> </span>bitbake<span class="w"> </span>linux<span class="w"> </span>-c<span class="w"> </span>updiff<span class="w">        </span><span class="c1"># regenerate the patchset, see the build system chapter</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="storage">
+<h2><span class="section-number">3.5. </span>Storage<a class="headerlink" href="#storage" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">IB_STORAGE_MODE</span></code> decides where a deploy writes: a loopback image
+(<code class="docutils literal notranslate"><span class="pre">soft</span></code>, the default on <em>virt64</em>), a real block device (<code class="docutils literal notranslate"><span class="pre">hard</span></code>), or an HTTP
+feed for a network install (<code class="docutils literal notranslate"><span class="pre">http</span></code>).</p>
+<p>The storage image is <code class="docutils literal notranslate"><span class="pre">filesystem/sdcard.img.&lt;platform&gt;</span></code>. A deploy creates it
+when it is missing, so the explicit step below is rarely needed:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>init_storage.sh<span class="w">          </span><span class="c1"># partition + mkfs the storage image/device</span>
+</pre></div>
+</div>
+<p>To inspect or edit its contents, mount the two partitions — boot (FAT) as
+<code class="docutils literal notranslate"><span class="pre">filesystem/p1</span></code>, rootfs (ext4) as <code class="docutils literal notranslate"><span class="pre">filesystem/p2</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mount.sh<span class="w">                 </span><span class="c1"># mount p1 + p2</span>
+$<span class="w"> </span>umount.sh<span class="w">                </span><span class="c1"># unmount them</span>
+</pre></div>
+</div>
+<p>Both wrap the <code class="docutils literal notranslate"><span class="pre">filesystem</span></code> recipe tasks (<code class="docutils literal notranslate"><span class="pre">fs_mount</span></code> / <code class="docutils literal notranslate"><span class="pre">fs_umount</span></code>); the
+<code class="docutils literal notranslate"><span class="pre">losetup</span></code>/<code class="docutils literal notranslate"><span class="pre">mount</span></code> calls escalate via <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-n</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>Unmount before redeploying</strong> — <code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code> reuses an existing mount
+instead of making a fresh one. And with <code class="docutils literal notranslate"><span class="pre">IB_STORAGE_MODE</span> <span class="pre">=</span> <span class="pre">&quot;hard&quot;</span></code> the
+target is a <em>real</em> block device named by <code class="docutils literal notranslate"><span class="pre">IB_STORAGE_DEVICE</span></code>: double-check
+<code class="docutils literal notranslate"><span class="pre">local.conf</span></code>.</p>
+</div>
+<section id="editing-an-archive-instead-of-the-storage">
+<h3><span class="section-number">3.5.1. </span>Editing an archive instead of the storage<a class="headerlink" href="#editing-an-archive-instead-of-the-storage" title="Link to this heading"></a></h3>
+<p>The same two scripts also open the <strong>cpio archives</strong>, which is what you want when
+the target is the initrd rather than the SD card:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mount.sh<span class="w"> </span>-i<span class="w">              </span><span class="c1"># extract board/&lt;plat&gt;/initrd.cpio into filesystem/p1</span>
+$<span class="w"> </span>umount.sh<span class="w"> </span>-i<span class="w">             </span><span class="c1"># repack it</span>
+</pre></div>
+</div>
+<p>A cpio archive is not a block image, so there is nothing to loop-mount:
+“mounting” it means extracting it into a tree you can edit, and unmounting means
+repacking. Both run under <code class="docutils literal notranslate"><span class="pre">fakeroot</span></code>, so the archive keeps its root ownership
+and modes <strong>without sudo and without bitbake</strong> — the fake-ownership database is
+saved on mount and replayed on umount.</p>
+<p>For the cases that need real root (<code class="docutils literal notranslate"><span class="pre">cpio</span> <span class="pre">-id</span></code> restoring device nodes) the
+bitbake path is still there, unpacking into the recipe’s own workdir:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mount.sh<span class="w"> </span>ramfs<span class="w">                    </span><span class="c1"># rootfs-linux's initrd.cpio</span>
+$<span class="w"> </span>mount.sh<span class="w"> </span>rootfs<span class="w"> </span>rootfs-linux<span class="w">      </span><span class="c1"># ... or its rootfs.cpio</span>
+$<span class="w"> </span>umount.sh<span class="w"> </span>ramfs<span class="w">                   </span><span class="c1"># repack with the matching call</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">mount.sh</span> <span class="pre">-h</span></code> and <code class="docutils literal notranslate"><span class="pre">umount.sh</span> <span class="pre">-h</span></code> spell out all of it.</p>
+</section>
+</section>
+<section id="deployment">
+<span id="user-guide-deployment"></span><h2><span class="section-number">3.6. </span>Deployment<a class="headerlink" href="#deployment" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>deploy.sh [-h] [-l] [-v] [-x] &lt;recipe&gt;
+</pre></div>
+</div>
+<p>Like <code class="docutils literal notranslate"><span class="pre">build.sh</span></code>, the recipe is a <strong>positional argument</strong> (<code class="docutils literal notranslate"><span class="pre">-x</span></code> optional and
+no-op), and <code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code> inherits the state left by the prior <code class="docutils literal notranslate"><span class="pre">build.sh</span></code>.
+Deploying the BSP recipe writes the full image:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>deploy.sh<span class="w"> </span>bsp-linux<span class="w">         </span><span class="c1"># boot chain + FIT to p1, rootfs to p2</span>
+</pre></div>
+</div>
+<p>It creates the storage image if needed, mounts it, then copies the bootloader and
+the <code class="docutils literal notranslate"><span class="pre">.itb</span></code> to the boot partition and the root filesystem to the second one.
+Deployment can also be done per component — after rebuilding only the user space,
+redeploy just that:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>deploy.sh<span class="w"> </span>usr-linux
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">deploy.sh</span> <span class="pre">-l</span></code> lists the recipes that define a <code class="docutils literal notranslate"><span class="pre">do_deploy</span></code> task (it is a
+little slow: it queries <em>bitbake</em> per recipe).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As with the build, <code class="docutils literal notranslate"><span class="pre">bitbake</span></code> runs <strong>unprivileged</strong> and the privileged
+operations (<code class="docutils literal notranslate"><span class="pre">mount</span></code>, <code class="docutils literal notranslate"><span class="pre">losetup</span></code>, <code class="docutils literal notranslate"><span class="pre">mkfs</span></code>, <code class="docutils literal notranslate"><span class="pre">parted</span></code>, …) escalate via
+<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-n</span></code> against a timestamp opened once at the start of the deploy.</p>
+</div>
+<section id="network-install-http-mode">
+<h3><span class="section-number">3.6.1. </span>Network install (<code class="docutils literal notranslate"><span class="pre">http</span></code> mode)<a class="headerlink" href="#network-install-http-mode" title="Link to this heading"></a></h3>
+<p>On a platform whose <code class="docutils literal notranslate"><span class="pre">IB_STORAGE_MODE</span></code> is <code class="docutils literal notranslate"><span class="pre">http</span></code>, the deploy does not write a
+storage device at all: it publishes a file set the board downloads and installs
+over the network. The files land in <code class="docutils literal notranslate"><span class="pre">IB_HTTP_DEPLOY_PATH</span></code>, which defaults
+<strong>inside the tree</strong> (<code class="docutils literal notranslate"><span class="pre">build/deploy/tezi/&lt;platform&gt;</span></code>) — no web-server document
+root to arrange, no root privilege, and nothing written outside the tree.</p>
+<p><code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code> then starts a server for it, so a deploy leaves a working feed
+behind with no manual step:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tezi-feed-serve.sh<span class="w">              </span><span class="c1"># serve in the foreground</span>
+$<span class="w"> </span>tezi-feed-serve.sh<span class="w"> </span>--status<span class="w">     </span><span class="c1"># is it running, and on which URL?</span>
+$<span class="w"> </span>tezi-feed-serve.sh<span class="w"> </span>--stop<span class="w">       </span><span class="c1"># stop a detached server</span>
+</pre></div>
+</div>
+<p>It is a plain <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">http.server</span></code> on <code class="docutils literal notranslate"><span class="pre">IB_HTTP_FEED_PORT</span></code> (8080 by
+default, so it runs as your user), rooted at the feed directory. <code class="docutils literal notranslate"><span class="pre">--status</span></code>
+prints the URL to hand to the board. To publish somewhere else on one machine —
+a real web server’s document root, say — override <code class="docutils literal notranslate"><span class="pre">IB_HTTP_DEPLOY_PATH</span></code> in
+<code class="docutils literal notranslate"><span class="pre">build/conf/site.conf</span></code> rather than in the tracked <code class="docutils literal notranslate"><span class="pre">local.conf</span></code>.</p>
+</section>
+</section>
+<section id="running-the-emulated-system">
+<h2><span class="section-number">3.7. </span>Running the emulated system<a class="headerlink" href="#running-the-emulated-system" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">st.sh</span></code> launches the freshly deployed image in the patched QEMU built by the
+<code class="docutils literal notranslate"><span class="pre">qemu</span></code> recipe:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>st.sh<span class="w">        </span><span class="c1"># headless: serial multiplexed on stdio, no display</span>
+$<span class="w"> </span>st.sh<span class="w"> </span>-d<span class="w">     </span><span class="c1"># graphical: adds virtio-gpu/keyboard/mouse and an SDL window</span>
+</pre></div>
+</div>
+<p>It handles <em>virt64</em> and <em>virt32</em>, picking the emulator binary from
+<code class="docutils literal notranslate"><span class="pre">IB_PLATFORM</span></code> (<code class="docutils literal notranslate"><span class="pre">qemu-system-aarch64</span></code> / <code class="docutils literal notranslate"><span class="pre">qemu-system-arm</span></code>). The serial
+console stays on stdio in graphical mode too, so a run with <code class="docutils literal notranslate"><span class="pre">-d</span></code> remains
+scriptable. Any argument other than <code class="docutils literal notranslate"><span class="pre">-d</span></code> and <code class="docutils literal notranslate"><span class="pre">-h</span></code> is passed through to
+QEMU — <code class="docutils literal notranslate"><span class="pre">st.sh</span> <span class="pre">-S</span></code> freezes the machine at reset, waiting for a debugger.</p>
+<p>The boot mode is picked from <code class="docutils literal notranslate"><span class="pre">filesystem/flash0.img</span></code>: present means the ATF
+chain (<code class="docutils literal notranslate"><span class="pre">-M</span> <span class="pre">virt,virtualization=on,secure=on</span></code> plus the pflash image), absent
+means bare U-Boot loaded with <code class="docutils literal notranslate"><span class="pre">-kernel</span> <span class="pre">u-boot/u-boot</span></code> at EL1.</p>
+<p>Networking is user-mode (slirp): the guest gets its address immediately, needs no
+<code class="docutils literal notranslate"><span class="pre">sudo</span></code> and no <code class="docutils literal notranslate"><span class="pre">tap</span></code> device, and guest SSH is forwarded to host port <code class="docutils literal notranslate"><span class="pre">2222</span></code>
+(<code class="docutils literal notranslate"><span class="pre">ssh</span> <span class="pre">-p</span> <span class="pre">2222</span> <span class="pre">root&#64;localhost</span></code>). A GDB stub listens on <code class="docutils literal notranslate"><span class="pre">tcp::1234</span></code>, offset by
+the number of emulators already running so two instances never collide.</p>
+</section>
+<section id="user-space-applications">
+<h2><span class="section-number">3.8. </span>User space applications<a class="headerlink" href="#user-space-applications" title="Link to this heading"></a></h2>
+<p>Custom applications and out-of-tree kernel modules live in <code class="docutils literal notranslate"><span class="pre">linux/usr</span></code> and are
+built with CMake by the <code class="docutils literal notranslate"><span class="pre">usr-linux</span></code> recipe. See
+<a class="reference internal" href="rootfs/linux_usr.html#linux-usr"><span class="std std-ref">Linux user applications</span></a> for how they are installed into the
+root filesystem.</p>
+<p>For a tight edit-compile loop, <code class="docutils literal notranslate"><span class="pre">makeusr.sh</span></code> reproduces what the recipe does in
+<code class="docutils literal notranslate"><span class="pre">do_build</span></code> — CMake plus <code class="docutils literal notranslate"><span class="pre">make</span></code>, and the kernel modules — without going
+through bitbake. Run it from inside <code class="docutils literal notranslate"><span class="pre">linux/usr</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>linux/usr<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>makeusr.sh
+$<span class="w"> </span>makeusr.sh<span class="w"> </span>-M<span class="w">               </span><span class="c1"># skip the kernel modules</span>
+$<span class="w"> </span>makeusr.sh<span class="w"> </span>-C<span class="w">               </span><span class="c1"># remove build/ and exit</span>
+$<span class="w"> </span>makeusr.sh<span class="w"> </span>-h<span class="w">               </span><span class="c1"># all options</span>
+</pre></div>
+</div>
+<p>It needs the buildroot toolchain to have been built once (it takes the CMake
+toolchain file from <code class="docutils literal notranslate"><span class="pre">linux/rootfs/host</span></code>), and it deploys locally into
+<code class="docutils literal notranslate"><span class="pre">linux/usr/build/deploy</span></code>. A full <code class="docutils literal notranslate"><span class="pre">deploy.sh</span> <span class="pre">usr-linux</span></code> is still what puts the
+result into the target rootfs.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rootfs/linux_usr.html" class="btn btn-neutral float-left" title="2.1. Linux user applications (usr)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="container.html" class="btn btn-neutral float-right" title="4. Containerised build environment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

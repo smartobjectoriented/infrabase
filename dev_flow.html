@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6. Development flow &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="7. Base environnement extension for Infrabase" href="base_extension/base_extension.html" />
+    <link rel="prev" title="5. Build System" href="build_system/build_system.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rootfs/rootfs.html">2. User applications and rootfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">3. User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">4. Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build_system/build_system.html">5. Build System</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Development  flow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#development">6.1. Development</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-new-issue-branch">6.1.1. Create new issue &amp; branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#merge-in-the-main-branch">6.1.2. Merge in the main branch</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="base_extension/base_extension.html">7. Base environnement extension for Infrabase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6. </span>Development  flow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="development-flow">
+<span id="dev-flow"></span><h1><span class="section-number">6. </span>Development  flow<a class="headerlink" href="#development-flow" title="Link to this heading"></a></h1>
+<p>Here is an overview of the <em>development flow</em> used in the Infrabase project.</p>
+<ul class="simple">
+<li><p><strong>Current</strong>/<strong>latest</strong> version of the framework is available in the <code class="docutils literal notranslate"><span class="pre">main</span></code>
+branch.</p></li>
+<li><p>The development activities are done in a specific branch. An issue is linked
+with each development branches.</p></li>
+<li><p>Once the development of a new feature has completed, the developer opens a <code class="docutils literal notranslate"><span class="pre">pull</span>
+<span class="pre">request</span> <span class="pre">(PR)</span></code>. The <em>changes</em> are reviewed and then merged into the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch
+by the <em>Infrabase maintainers</em>.</p></li>
+</ul>
+<p>The <a class="reference internal" href="#gitflow">gitFlow</a> figures shows this flow.</p>
+<p>Periodically, the <em>maintainers</em> publish a major release of the <em>Infrabase</em>.
+For a new version, the following steps are performed:</p>
+<ul class="simple">
+<li><p>The main new features has been re-tested</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">CHANGELOG</span></code> file is updated with the new release information (release
+number, description of the main add-on to the framework, …)</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">tag</span></code> with the version number is created</p></li>
+</ul>
+<p class="plantuml" id="gitflow">
+<object data="_images/plantuml-735fd932e1cd6b90a9e53db2480adf5a22e1f3d6.svg" type="image/svg+xml" style="width:382px;height:208px;background:#FFFFFF;">
+<img src="_images/plantuml-735fd932e1cd6b90a9e53db2480adf5a22e1f3d6.png" alt="master-&gt;&gt;FeatureA: Create branch
+master-&gt;&gt;FeatureB: Create branch
+FeatureA-&gt;&gt;master: Merge new feature in master
+FeatureB-&gt;&gt;master: Merge new feature in master"/>
+
+</object></p>
+<section id="development">
+<h2><span class="section-number">6.1. </span>Development<a class="headerlink" href="#development" title="Link to this heading"></a></h2>
+<p>For the development of new features or improvements, a new branch has to be created.
+It should not be any development done directly in the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch. Each new
+<em>topic</em> has to have is own branch. Branches are not reused.</p>
+<p>An issue should be linked with each branch (an issue per branch). This issue should
+provide:</p>
+<ul class="simple">
+<li><p>A description of what is addressed</p></li>
+<li><p>(Optional) Information on the advancement of this topic, issues
+found, explanation of the implementation, …</p></li>
+</ul>
+<p>The issue is automatically closed after
+the development branch is merged of in the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Issue can be (should be) created to document problems, improvement found using
+the framework without having to create a branch.</p>
+<p>The branch can be created when the <em>issue</em> is addressed</p>
+</div>
+<section id="create-new-issue-branch">
+<h3><span class="section-number">6.1.1. </span>Create new issue &amp; branch<a class="headerlink" href="#create-new-issue-branch" title="Link to this heading"></a></h3>
+<p>Infrabase is hosted on <a class="reference external" href="https://github.com/smartobjectoriented/infrabase">GitHub</a>. To create a
+branch with an associated issue:</p>
+<ol class="arabic simple">
+<li><p>Create a new issue: <a class="reference external" href="https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-an-issue">Creating an issue</a></p></li>
+<li><p>Create the branch from the issue, so the two stay linked: <a class="reference external" href="https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-a-branch-for-an-issue">Creating a branch to work on
+an issue</a></p></li>
+</ol>
+</section>
+<section id="merge-in-the-main-branch">
+<h3><span class="section-number">6.1.2. </span>Merge in the main branch<a class="headerlink" href="#merge-in-the-main-branch" title="Link to this heading"></a></h3>
+<p>Once the development of a specific topic has completed and been tested, it has to be
+<em>integrated</em> in the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch. It is done by opening a <code class="docutils literal notranslate"><span class="pre">pull</span> <span class="pre">request</span> <span class="pre">(PR)</span></code>.</p>
+<p>By opening a <code class="docutils literal notranslate"><span class="pre">pull</span> <span class="pre">request</span></code>, a developer asks the <em>Infrabase maintainers</em> to:</p>
+<ul class="simple">
+<li><p>Do a review of the modifications</p></li>
+<li><p>Perform the <code class="docutils literal notranslate"><span class="pre">merge</span></code></p></li>
+</ul>
+<p>Either from the branch page on GitHub, or with the CLI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>gh<span class="w"> </span>pr<span class="w"> </span>create<span class="w"> </span>--base<span class="w"> </span>main
+</pre></div>
+</div>
+<p><a class="reference external" href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">Pull request official doc</a>.</p>
+<p>A PR description should say <strong>what</strong> changed and <strong>why</strong>, and how it was tested — which
+platform, which recipes, and whether the result was actually run.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Ideally, there is only one commit per changes. If, for some reasons, it is not
+possible, please inform the <em>dev team</em> to lock this branch.</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="build_system/build_system.html" class="btn btn-neutral float-left" title="5. Build System" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="base_extension/base_extension.html" class="btn btn-neutral float-right" title="7. Base environnement extension for Infrabase" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

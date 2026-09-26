@@ -1,0 +1,161 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7.2. Debootstrap rootfs &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="7.3. Raspberry Pi OS" href="raspberrypiOS.html" />
+    <link rel="prev" title="7.1. Armbian full system" href="armbian.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rootfs/rootfs.html">2. User applications and rootfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">3. User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../container.html">4. Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build_system/build_system.html">5. Build System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dev_flow.html">6. Development  flow</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="base_extension.html">7. Base environnement extension for Infrabase</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="armbian.html">7.1. Armbian full system</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">7.2. Debootstrap rootfs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">7.2.1. Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generating-a-rootfs">7.2.2. Generating a rootfs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usability-in-the-infrabase-framework">7.2.3. Usability in the Infrabase framework</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="raspberrypiOS.html">7.3. Raspberry Pi OS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buildroot.html">7.4. Buildroot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uboot.html">7.5. U-Boot modifications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uboot.html#further-improvements">7.6. Further improvements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="base_extension.html"><span class="section-number">7. </span>Base environnement extension for Infrabase</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">7.2. </span>Debootstrap rootfs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="debootstrap-rootfs">
+<span id="debootstrap"></span><h1><span class="section-number">7.2. </span>Debootstrap rootfs<a class="headerlink" href="#debootstrap-rootfs" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2><span class="section-number">7.2.1. </span>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="https://linux-sunxi.org/Debootstrap">Debootstrap</a> is a rootfs generator able to produce full distribution (Ubuntu or Debian based) rootfs. It can be used directly on the target or cross-compiled from a host computer.</p>
+</section>
+<section id="generating-a-rootfs">
+<h2><span class="section-number">7.2.2. </span>Generating a rootfs<a class="headerlink" href="#generating-a-rootfs" title="Link to this heading"></a></h2>
+<p>The procedure showed on the linux-sunxi in the Introduction explain how to quickly setup deboostrap and how to use it. The result is a folder containing the cross-compiled rootfs.
+In our repo, the directory agency/debootsrap_rootfs contains the script to generate an Ubuntu 20.04 focal distro for arm64.</p>
+</section>
+<section id="usability-in-the-infrabase-framework">
+<h2><span class="section-number">7.2.3. </span>Usability in the Infrabase framework<a class="headerlink" href="#usability-in-the-infrabase-framework" title="Link to this heading"></a></h2>
+<p>Debootstrap is one of the simplest tool to generate an ARM based rootfs.</p>
+<p>Pros:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Generate a distro based rootfs in &lt; 30-min</p></li>
+<li><p>Can generate on the host or the target</p></li>
+<li><p>chroot customization, so it is really quick to tweak the rootfs on the host</p></li>
+<li><p>Small (592M Debootstrap vs 2.3G Armbian)</p></li>
+</ul>
+</div></blockquote>
+<p>Cons:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Limited in the distros list</p></li>
+<li><p>Need some manual tweaks after the base creation to have a fully functional system.</p></li>
+</ul>
+</div></blockquote>
+<p>This framework is really usefull to quickly bring up a full distro rootfs. Its ability to script its creation easily and to customize it in a chroot like manner is what make it stand out.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="armbian.html" class="btn btn-neutral float-left" title="7.1. Armbian full system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="raspberrypiOS.html" class="btn btn-neutral float-right" title="7.3. Raspberry Pi OS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

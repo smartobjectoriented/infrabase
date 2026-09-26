@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4. Containerised build environment &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5. Build System" href="build_system/build_system.html" />
+    <link rel="prev" title="3. User Guide" href="user_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rootfs/rootfs.html">2. User applications and rootfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">3. User guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Container</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#usage">4.1. Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-as-you-not-as-root">4.2. Running as you, not as root</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-the-container-is-given">4.3. What the container is given</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#caveats">4.4. Caveats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-image">4.5. The image</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="build_system/build_system.html">5. Build System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_flow.html">6. Development  flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base_extension/base_extension.html">7. Base environnement extension for Infrabase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>Containerised build environment</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="containerised-build-environment">
+<span id="container"></span><h1><span class="section-number">4. </span>Containerised build environment<a class="headerlink" href="#containerised-build-environment" title="Link to this heading"></a></h1>
+<p>The build environment is available as a container image, driven by the
+<code class="docutils literal notranslate"><span class="pre">dbuild.sh</span></code> <a class="reference internal" href="glossary.html#term-Standard-script"><span class="xref std std-term">standard script</span></a>. It is the recommended way to build: the
+image carries the cross toolchains, the host packages and Python, so nothing has
+to be installed on your machine, and every developer builds against the same,
+pinned environment.</p>
+<p>The image contains <strong>no project source</strong>. The repository stays on the host and is
+bind-mounted at its <em>own absolute path</em>, which is what makes the container and
+the host interchangeable — BitBake stamps, the buildroot host tree, CMake caches
+and the <code class="docutils literal notranslate"><span class="pre">*.attach.sha256</span></code> manifests all embed absolute paths, so a tree built
+inside the container can be built further outside it, and the other way round.</p>
+<section id="usage">
+<h2><span class="section-number">4.1. </span>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>dbuild.sh --build              Build (or rebuild) the image
+dbuild.sh                      Interactive shell inside the container
+dbuild.sh build.sh bsp-linux   Run a build
+dbuild.sh deploy.sh bsp-linux  Deploy it
+dbuild.sh -h                   Print help
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>scripts/dbuild.sh<span class="w"> </span>--build<span class="w">               </span><span class="c1"># once, or after changing the image</span>
+$<span class="w"> </span>scripts/dbuild.sh<span class="w"> </span>build.sh<span class="w"> </span>bsp-linux
+$<span class="w"> </span>scripts/dbuild.sh<span class="w"> </span>deploy.sh<span class="w"> </span>bsp-linux
+</pre></div>
+</div>
+<p>Any command is run with <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> already sourced and with the current directory
+preserved, so <code class="docutils literal notranslate"><span class="pre">dbuild.sh</span></code> in front of a command you already know is all there is
+to it. With no command you get an interactive shell instead, with the environment
+sourced and a <code class="docutils literal notranslate"><span class="pre">[ib-build]</span></code> prompt to make it obvious where you are — the tree
+looks identical to the host one, same absolute paths.</p>
+<p>Two environment variables adjust the invocation:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IB_DOCKER_IMAGE</span></code></p></td>
+<td><p>Image name:tag, default <code class="docutils literal notranslate"><span class="pre">infrabase-build:1.0</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">IB_DOCKER_OPTS</span></code></p></td>
+<td><p>Extra options passed to <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="running-as-you-not-as-root">
+<h2><span class="section-number">4.2. </span>Running as you, not as root<a class="headerlink" href="#running-as-you-not-as-root" title="Link to this heading"></a></h2>
+<p>Everything the recipes write lands in the bind-mounted repository — attached
+source trees, <code class="docutils literal notranslate"><span class="pre">build/tmp</span></code>, the storage images. If the container ran as root,
+all of it would come back root-owned on the host, reintroducing exactly the
+ownership churn the unprivileged-bitbake model removes.</p>
+<p>The UID/GID cannot be baked into the image (they differ per host), so
+<code class="docutils literal notranslate"><span class="pre">dbuild.sh</span></code> passes <code class="docutils literal notranslate"><span class="pre">HOST_UID</span></code>/<code class="docutils literal notranslate"><span class="pre">HOST_GID</span></code> and the image’s entrypoint starts
+as root, materialises a matching account, then drops to it with <code class="docutils literal notranslate"><span class="pre">setpriv</span></code> —
+no extra process in the signal path, so Ctrl-C reaches the build and exit codes
+propagate.</p>
+<p>Inside a throw-away container, the privileged build steps take the simple route:
+a blanket <code class="docutils literal notranslate"><span class="pre">NOPASSWD</span></code> sudoers rule, plus <code class="docutils literal notranslate"><span class="pre">Defaults</span> <span class="pre">!authenticate</span></code> because the
+scripts open their session with <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-v</span></code>, which validates the <em>user</em> rather
+than a command. This also means the container is the answer when the host’s own
+<code class="docutils literal notranslate"><span class="pre">sudo</span></code> gets in the way.</p>
+</section>
+<section id="what-the-container-is-given">
+<h2><span class="section-number">4.3. </span>What the container is given<a class="headerlink" href="#what-the-container-is-given" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--privileged</span></code> and <code class="docutils literal notranslate"><span class="pre">/dev</span></code> — the storage steps need loop devices, <code class="docutils literal notranslate"><span class="pre">mount</span></code>
+and <code class="docutils literal notranslate"><span class="pre">mkfs</span></code>. Loop devices are a <strong>host-kernel</strong> resource, so concurrent builds
+on one machine contend for them exactly as they do outside a container.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--network</span> <span class="pre">host</span></code> — keeps <code class="docutils literal notranslate"><span class="pre">st.sh</span></code>’s slirp port forwards and the GDB stub
+reachable from the host without publishing ports, and lets the recipes fetch
+through the host resolver.</p></li>
+<li><p>The ssh-agent socket, when present, so a fetch over SSH works from inside.
+Nothing is copied into the image.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DISPLAY</span></code> and the X11 socket <em>with the X cookie</em> — what <code class="docutils literal notranslate"><span class="pre">st.sh</span> <span class="pre">-d</span></code> needs
+to open its window — mounted at its own path
+with <code class="docutils literal notranslate"><span class="pre">XAUTHORITY</span></code> pointing at it — the container user has a different
+<code class="docutils literal notranslate"><span class="pre">HOME</span></code>, and under Wayland the cookie lives outside <code class="docutils literal notranslate"><span class="pre">HOME</span></code> anyway.</p></li>
+<li><p>stdin, always (<code class="docutils literal notranslate"><span class="pre">-i</span></code>): without it Docker hands the container <code class="docutils literal notranslate"><span class="pre">/dev/null</span></code> and
+piping into a containerised command would silently deliver nothing. A tty
+(<code class="docutils literal notranslate"><span class="pre">-t</span></code>) is allocated only for a real terminal, so CI logs stay clean.</p></li>
+</ul>
+</section>
+<section id="caveats">
+<h2><span class="section-number">4.4. </span>Caveats<a class="headerlink" href="#caveats" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>A mount lives only as long as the container that made it.</strong> <code class="docutils literal notranslate"><span class="pre">dbuild.sh</span>
+<span class="pre">mount.sh</span></code> mounts inside its own mount namespace, and the mount is gone once
+the command returns. Run the mount and whatever uses it in the <em>same</em>
+container — typically from an interactive <code class="docutils literal notranslate"><span class="pre">dbuild.sh</span></code> shell.</p></li>
+<li><p><strong>A server started inside dies with the command.</strong> The container runs with
+<code class="docutils literal notranslate"><span class="pre">--rm</span></code>, so <code class="docutils literal notranslate"><span class="pre">dbuild.sh</span></code> starts the TEZI feed server on the <em>host</em> after the
+container exits instead (it shares the host network namespace, but not its
+lifetime).</p></li>
+<li><p><strong>A snap-packaged Docker can only bind-mount paths under ``$HOME``</strong>: the
+confined daemon fails with “read-only file system” elsewhere. This only matters
+for a <code class="docutils literal notranslate"><span class="pre">site.conf</span></code> that points <code class="docutils literal notranslate"><span class="pre">IB_HTTP_DEPLOY_PATH</span></code> outside the tree — the
+default feed is inside the bind-mounted tree. <code class="docutils literal notranslate"><span class="pre">dbuild.sh</span></code> detects the snap
+both by client path and by asking the daemon, and skips such a mount with a
+one-line warning rather than failing every invocation; prefer Docker from the
+apt repository.</p></li>
+</ul>
+</section>
+<section id="the-image">
+<h2><span class="section-number">4.5. </span>The image<a class="headerlink" href="#the-image" title="Link to this heading"></a></h2>
+<p>The image is defined in <code class="docutils literal notranslate"><span class="pre">docker/build-env/</span></code>, and the build context is that
+directory only — never the project root, which holds tens of gigabytes of build
+output.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code></p></td>
+<td><p>Two stages: fetch the Arm cross toolchain, then build
+the environment proper.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">packages.txt</span></code></p></td>
+<td><p><strong>The</strong> host package list, one per line with comments;
+also what you install when building on the host.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entrypoint.sh</span></code></p></td>
+<td><p>Materialises the host user and drops to it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bashrc</span></code></p></td>
+<td><p>rc file for the interactive shell (sources <code class="docutils literal notranslate"><span class="pre">env.sh</span></code>).</p></td>
+</tr>
+</tbody>
+</table>
+<p>The toolchain version is pinned in the <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code>
+(<code class="docutils literal notranslate"><span class="pre">aarch64-none-linux-gnu</span></code> 12.3.rel1): bump it there, rebuild the image and
+re-validate — never by installing something else on a host. Adding a host
+dependency means adding a line to <code class="docutils literal notranslate"><span class="pre">packages.txt</span></code>; the Dockerfile installs that
+file verbatim.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Sourcing <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> happens in the interactive shell’s rc file rather than in
+a parent process on purpose: <code class="docutils literal notranslate"><span class="pre">env.sh</span></code> defines shell <em>functions</em> (the
+<code class="docutils literal notranslate"><span class="pre">cd</span></code>/<code class="docutils literal notranslate"><span class="pre">pushd</span></code>/<code class="docutils literal notranslate"><span class="pre">popd</span></code> wrappers and <code class="docutils literal notranslate"><span class="pre">ib_autoswitch_*</span></code>), which only exist
+in the shell that sourced them. A parent that sources it and then execs bash
+passes on the exported variables but loses the functions.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="user_guide.html" class="btn btn-neutral float-left" title="3. User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="build_system/build_system.html" class="btn btn-neutral float-right" title="5. Build System" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

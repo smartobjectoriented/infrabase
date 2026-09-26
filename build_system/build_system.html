@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. Build System &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="6. Development flow" href="../dev_flow.html" />
+    <link rel="prev" title="4. Containerised build environment" href="../container.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rootfs/rootfs.html">2. User applications and rootfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">3. User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../container.html">4. Container</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Build System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bitbake-environment">5.1. Bitbake environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#infrabase-build-system">5.2. Infrabase build system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-system-directory-organization">5.3. Build system directory organization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#directory-conf">5.3.1. Directory <code class="docutils literal notranslate"><span class="pre">conf/</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#directory-meta-linux-classes">5.3.2. Directory <code class="docutils literal notranslate"><span class="pre">meta-linux/classes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#directory-meta-linux-conf">5.3.3. Directory <code class="docutils literal notranslate"><span class="pre">meta-linux/conf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#directory-recipes">5.3.4. Directory <code class="docutils literal notranslate"><span class="pre">recipes-*</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#directory-filesystem">5.3.5. Directory <code class="docutils literal notranslate"><span class="pre">filesystem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-recipe">5.3.5.1. The recipe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#patchset">5.3.5.2. Patchset</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#directory-tmp">5.3.6. Directory <code class="docutils literal notranslate"><span class="pre">tmp</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#infrabase-basic-workflow">5.4. Infrabase Basic workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#protecting-local-edits">5.4.1. Protecting local edits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-a-patchset">5.4.2. Building a patchset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#excluding-generated-files">5.4.3. Excluding generated files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../dev_flow.html">6. Development  flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../base_extension/base_extension.html">7. Base environnement extension for Infrabase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>Build System</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="build-system">
+<span id="id1"></span><h1><span class="section-number">5. </span>Build System<a class="headerlink" href="#build-system" title="Link to this heading"></a></h1>
+<p>This chapter gives an overview of the Infrabase build system.
+The build commands are given in the <a class="reference internal" href="../user_guide.html#user-guide"><span class="std std-ref">user guide chapter</span></a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Infrabase</span></code> build system relies on various scripts and methods, but is mainly
+driven by <code class="docutils literal notranslate"><span class="pre">bitbake</span></code> recipes.</p>
+<p>We call <code class="docutils literal notranslate"><span class="pre">standard</span> <span class="pre">scripts</span></code> all shell scripts present in the <code class="docutils literal notranslate"><span class="pre">scripts</span></code> directory at the root of <em>Infrabase</em>,
+the most commonly used ones are <code class="docutils literal notranslate"><span class="pre">build.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">mount.sh</span></code></p>
+<p>The main concepts of <em>bitbake</em> are: <code class="docutils literal notranslate"><span class="pre">layers</span></code>, <code class="docutils literal notranslate"><span class="pre">configurations</span></code>, <code class="docutils literal notranslate"><span class="pre">classes</span></code>, <code class="docutils literal notranslate"><span class="pre">recipes</span></code> and <code class="docutils literal notranslate"><span class="pre">tasks</span></code>.</p>
+<p>A layer can be defined as a collection of <em>configurations</em>, <em>classes</em> and <em>recipes</em> associated to
+a component. It describes the overall build process with the different tasks belonging to recipes.</p>
+<p>Classes are configuration-independent functionalities/tasks and can have hierarchies (a base class
+can be inherited by other classes).</p>
+<p>Recipes contain rules to be executed for a specific application or component.</p>
+<p>Tasks are defined in classes or recipes and are the core functions managed by the build system.
+Tasks are either (<strong>bash</strong>) shell script or <strong>python</strong> functions</p>
+<p>Configurations are everywhere, but the <code class="docutils literal notranslate"><span class="pre">local.conf</span></code> file located in <code class="docutils literal notranslate"><span class="pre">conf/</span></code> directory contains the
+general configuration.</p>
+<section id="bitbake-environment">
+<h2><span class="section-number">5.1. </span>Bitbake environment<a class="headerlink" href="#bitbake-environment" title="Link to this heading"></a></h2>
+<p>The Infrabase build system relies on <a class="reference external" href="https://docs.yoctoproject.org/bitbake">Bitbake</a> which is the
+task orchestrator system used by Yocto. The overall architecture is depicted in the figure below.</p>
+<figure class="align-center" id="id2">
+<img alt="../_images/Infrabase-Build_System.drawio.png" src="../_images/Infrabase-Build_System.drawio.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 5.1 </span><span class="caption-text">Differences between Yocto and Infrabase in the build system architecture</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>While Yocto is closely related to other desktop-oriented distributions, using many of the same components
+as found on Desktops. Infrabase instead has opted to use <strong>buildroot</strong> which is more suitable for embedded use cases.</p>
+<p><em>Infrabase</em> makes use of the <code class="docutils literal notranslate"><span class="pre">meta</span></code> layer from <em>OpenEmbedded</em> because it provides several classes
+which enhance the developer experience of a <em>Bitbake</em>-based build system - so they should be considered as
+an integral part of the <em>Infrabase</em>.</p>
+</section>
+<section id="infrabase-build-system">
+<h2><span class="section-number">5.2. </span>Infrabase build system<a class="headerlink" href="#infrabase-build-system" title="Link to this heading"></a></h2>
+<p>In <em>Infrabase</em>, <em>bitbake</em> and some small parts of <em>OpenEmbedded</em> are used to build
+the initial environment and to reconcile patches of components after the modifications of the source code.</p>
+<p>After the initial clone of the repository, <em>bitbake</em> allows to build all components by fetching the
+code from the original location and applying the related patchsets.</p>
+<p>The updates of patches following some modifications of the repository are part of <a class="reference internal" href="../dev_flow.html#dev-flow"><span class="std std-ref">the development flow</span></a>.</p>
+<p>We differentiate a <em>bitbake</em> script from a <a class="reference internal" href="../glossary.html#term-Standard-script"><span class="xref std std-term">standard script</span></a>. To ease development, consider using the standard scripts from
+the <code class="docutils literal notranslate"><span class="pre">scripts/</span></code> directory, they can be invoked from anywhere in the project.</p>
+</section>
+<section id="build-system-directory-organization">
+<h2><span class="section-number">5.3. </span>Build system directory organization<a class="headerlink" href="#build-system-directory-organization" title="Link to this heading"></a></h2>
+<p>All build system files (except the standard scripts) are located in the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not delete the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory. It is <strong>not</strong> automatically generated and
+is stored in <em>git</em>. This is because the <code class="docutils literal notranslate"><span class="pre">build/</span></code> directory contains layers. See
+directories that beging with the <code class="docutils literal notranslate"><span class="pre">meta-</span></code> prefix.</p>
+</div>
+<p>Actually, <em>bitbake</em> creates a <code class="docutils literal notranslate"><span class="pre">tmp/</span></code> subdirectory within <code class="docutils literal notranslate"><span class="pre">build/</span></code>. If a complete re-build is required,
+you can delete <code class="docutils literal notranslate"><span class="pre">tmp/</span></code> at any time.</p>
+<p><code class="docutils literal notranslate"><span class="pre">build/deploy/</span></code> is generated as well, but sits deliberately <em>outside</em> <code class="docutils literal notranslate"><span class="pre">tmp/</span></code> so that a clean does not
+wipe it: it holds the local deploy of the user space and, under <code class="docutils literal notranslate"><span class="pre">deploy/tezi/&lt;platform&gt;</span></code>, the HTTP feed a
+board may be installing from.</p>
+<figure class="align-center" id="id3">
+<img alt="../_images/Infrabase-IB_Architecture.drawio.png" src="../_images/Infrabase-IB_Architecture.drawio.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 5.2 </span><span class="caption-text">Build system directory organization as stored in git</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>In <em>bitbake</em>, a layer corresponds to a <code class="docutils literal notranslate"><span class="pre">meta</span></code> directory entry. For example, the <em>meta/</em> directory is
+a generic layer which is used by all other layers.</p>
+<p>The layer set is fixed and regenerated into <code class="docutils literal notranslate"><span class="pre">build/conf/bblayers.conf</span></code> by
+<code class="docutils literal notranslate"><span class="pre">scripts/common/bblayers.sh:regen_bblayers</span></code> on every <code class="docutils literal notranslate"><span class="pre">build.sh</span></code> / <code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code>
+invocation, so adding a layer is a one-line change there rather than a hand edit:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Layer</p></th>
+<th class="head"><p>Content</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">meta</span></code></p></td>
+<td><p>the generic OpenEmbedded base (classes shared by every other layer)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">meta-qemu</span></code></p></td>
+<td><p>the QEMU emulator built for the <em>virt32</em> / <em>virt64</em> platforms</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">meta-filesystem</span></code></p></td>
+<td><p>storage images, partitioning and the mount/umount machinery</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">meta-uboot</span></code></p></td>
+<td><p>U-Boot 2022.04 (QEMU virt, Raspberry Pi) and 2024.07 (imx-boot for the Verdin)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">meta-linux</span></code></p></td>
+<td><p>the Linux kernel, one recipe per version/fork</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">meta-rootfs</span></code></p></td>
+<td><p>the root filesystem (buildroot by default) and the initramfs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">meta-usr</span></code></p></td>
+<td><p>the user-space applications</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">meta-bsp</span></code></p></td>
+<td><p>the per-platform glue: boot chain assembly, ITS templates, deploy</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">meta-atf</span></code></p></td>
+<td><p>ARM Trusted Firmware and OP-TEE</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">meta-so3</span></code></p></td>
+<td><p>the AVZ hypervisor, fetched from the SO3 repository and built with an
+<code class="docutils literal notranslate"><span class="pre">*_avz_defconfig</span></code>. Named for the upstream it comes from, and the same
+layer the other trees of this family use; Infrabase carries only its
+<code class="docutils literal notranslate"><span class="pre">avz</span></code> recipe, not the SO3 kernel.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Which of <code class="docutils literal notranslate"><span class="pre">atf</span></code>, <code class="docutils literal notranslate"><span class="pre">optee</span></code> and <code class="docutils literal notranslate"><span class="pre">avz</span></code> a given build actually compiles is decided
+by <code class="docutils literal notranslate"><span class="pre">IB_BOOT_CHAIN</span></code> at the dependency level (<code class="docutils literal notranslate"><span class="pre">bsp.bbclass</span></code>, through the
+<code class="docutils literal notranslate"><span class="pre">IB_CHAIN_HAS_&lt;STAGE&gt;</span></code> flags derived from it),
+not by adding and removing layers — the layer set is the same for every build.</p>
+<p>Let’s focus on the <strong>meta-linux</strong> layer as an example.</p>
+<section id="directory-conf">
+<h3><span class="section-number">5.3.1. </span>Directory <code class="docutils literal notranslate"><span class="pre">conf/</span></code><a class="headerlink" href="#directory-conf" title="Link to this heading"></a></h3>
+<p>General configuration directory</p>
+<p><strong>bitbake.conf</strong> - Main configuration for <em>bitbake</em>, each new layer must be added to this file
+to tell <em>bitbake</em> to consider the recipes described in the layer directory.</p>
+<p><strong>local.conf</strong> - Contains the influential project-wide configuration variables
+which by convention begin with the <code class="docutils literal notranslate"><span class="pre">IB_</span></code> prefix, these configuration variables can be used by any recipe.</p>
+<p><strong>site.conf</strong> - Optional and <strong>untracked</strong>, included by <code class="docutils literal notranslate"><span class="pre">bitbake.conf</span></code> <em>after</em> <code class="docutils literal notranslate"><span class="pre">local.conf</span></code>, so its
+assignments win. This is where a single machine deviates from the tracked defaults — publishing the HTTP
+feed somewhere else, for instance — without dirtying the repository. It is absent on most machines, and
+<code class="docutils literal notranslate"><span class="pre">include</span></code> is silent when the file does not exist.</p>
+</section>
+<section id="directory-meta-linux-classes">
+<h3><span class="section-number">5.3.2. </span>Directory <code class="docutils literal notranslate"><span class="pre">meta-linux/classes</span></code><a class="headerlink" href="#directory-meta-linux-classes" title="Link to this heading"></a></h3>
+<p>It defines the generic tasks/functions that are used by the recipe, like <code class="docutils literal notranslate"><span class="pre">do_configure</span></code> and <code class="docutils literal notranslate"><span class="pre">do_build</span></code> (two
+examples of tasks)</p>
+</section>
+<section id="directory-meta-linux-conf">
+<h3><span class="section-number">5.3.3. </span>Directory <code class="docutils literal notranslate"><span class="pre">meta-linux/conf</span></code><a class="headerlink" href="#directory-meta-linux-conf" title="Link to this heading"></a></h3>
+<p>Each layer has a very similar file called <code class="docutils literal notranslate"><span class="pre">layer.conf</span></code> which tells <em>bitbake</em> further information
+about the dependencies between layers and their priorities in the build process. Currently,
+all layers are processed with the same priority (4).</p>
+</section>
+<section id="directory-recipes">
+<h3><span class="section-number">5.3.4. </span>Directory <code class="docutils literal notranslate"><span class="pre">recipes-*</span></code><a class="headerlink" href="#directory-recipes" title="Link to this heading"></a></h3>
+<p>These are the recipes of the layer. In most cases, there is one recipe by layer (except for <em>rootfs</em>) which
+describes how to build the target component associated to the layer. Of course, depending on the number
+of releases/versions, there can be several recipes as well.</p>
+<p>Each recipe may have several subdirectories. Typically, a directory with the name of the component (<em>linux</em>)
+which contains the recipe files and a <code class="docutils literal notranslate"><span class="pre">files/</span></code> directory which contains additional files and patches.</p>
+</section>
+<section id="directory-filesystem">
+<h3><span class="section-number">5.3.5. </span>Directory <code class="docutils literal notranslate"><span class="pre">filesystem</span></code><a class="headerlink" href="#directory-filesystem" title="Link to this heading"></a></h3>
+<p>This directory is special, it is used as a staging area for the preparation of the file
+system disk image. Before deployment or upon filesystem creation, symbolic links named
+<code class="docutils literal notranslate"><span class="pre">p[0-9]+</span></code> are created. So for a disk image with 2 partitions <code class="docutils literal notranslate"><span class="pre">filesystem/</span></code> will contain <code class="docutils literal notranslate"><span class="pre">p1</span></code> and <code class="docutils literal notranslate"><span class="pre">p2</span></code>.</p>
+<p>For more information read the <a class="reference internal" href="../user_guide.html#user-guide-deployment"><span class="std std-ref">deployment section of the user guide chapter</span></a>.</p>
+<section id="the-recipe">
+<h4><span class="section-number">5.3.5.1. </span>The recipe<a class="headerlink" href="#the-recipe" title="Link to this heading"></a></h4>
+<p>The configuration and requirements of a recipe is given in a file with the <code class="docutils literal notranslate"><span class="pre">.bb</span></code> extension (for
+example <code class="docutils literal notranslate"><span class="pre">linux-5.10.bb</span></code> in our case).</p>
+</section>
+<section id="patchset">
+<h4><span class="section-number">5.3.5.2. </span>Patchset<a class="headerlink" href="#patchset" title="Link to this heading"></a></h4>
+<p>A <em>patchset</em> is a collection pf patches which are processed during the build, with the <code class="docutils literal notranslate"><span class="pre">do_patch</span></code> tasks.
+In <em>Infrabase</em>, the list of patches to be applied is contained in a file with <code class="docutils literal notranslate"><span class="pre">.inc</span></code> extension within
+the <em>files/</em> directory. And the list of <em>.inc</em> files to be considered in the recipe is described in the
+recipe file (<em>linux-5.10.bb</em>).</p>
+</section>
+</section>
+<section id="directory-tmp">
+<h3><span class="section-number">5.3.6. </span>Directory <code class="docutils literal notranslate"><span class="pre">tmp</span></code><a class="headerlink" href="#directory-tmp" title="Link to this heading"></a></h3>
+<p><em>Bitbake</em> automatically creates a <code class="docutils literal notranslate"><span class="pre">tmp/</span></code> directory in <em>build/</em> for his management and project-related
+files. The figure above shows the contents of this directory.</p>
+<figure class="align-center" id="id4">
+<img alt="../_images/Infrabase-Folders_tmp.drawio.png" src="../_images/Infrabase-Folders_tmp.drawio.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 5.3 </span><span class="caption-text">Directory tree of the <em>tmp/</em> directory in <em>build/</em></span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Once a task is executed successfully, a stamp file (0 byte) is created so that <em>bitbake</em> will not re-execute</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that standard scripts remove the stamp files associated to the component to be re-built.
+Only the <em>bsp</em> recipe does not delete the stamps for individual components except the one
+corresponding to itself.</p>
+</div>
+</section>
+</section>
+<section id="infrabase-basic-workflow">
+<h2><span class="section-number">5.4. </span>Infrabase Basic workflow<a class="headerlink" href="#infrabase-basic-workflow" title="Link to this heading"></a></h2>
+<p>Before running <code class="docutils literal notranslate"><span class="pre">build.sh</span></code>, always start by sourcing the IB environment like so : <code class="docutils literal notranslate"><span class="pre">.</span> <span class="pre">env.sh</span></code> or <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">env.sh</span></code>
+This will modify the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> variable - making it possible to invoke standard scripts from anywhere
+in the project.</p>
+<p>The initial build can be achieved by means of the <code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">&lt;bsp_name&gt;</span></code> command (the recipe is a
+positional argument). It will fetch, patch, prepare the environment and build everything (kernel,
+rootfs, apps, etc.).</p>
+<p>To list all available recipes (BSPs and components) one can use <code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">-l</span></code>.</p>
+<p>In the build process, there is a particular task called <code class="docutils literal notranslate"><span class="pre">do_attach_infrabase</span></code> which perform a copy
+of source code to the root of <em>infrabase</em>. Hence, the development can be done independently
+of the <code class="docutils literal notranslate"><span class="pre">tmp/</span></code> directory managed by <em>bitbake</em>.</p>
+<p>Therefore, the development is done on the source code related to the branch while the original files
+are not modified (in <em>tmp/work/</em>) directories.</p>
+<p>This allows developers to perform a <em>diff</em> (using the <code class="docutils literal notranslate"><span class="pre">do_updiff</span></code> task) which will generate
+the patches for the differences.</p>
+<section id="protecting-local-edits">
+<h3><span class="section-number">5.4.1. </span>Protecting local edits<a class="headerlink" href="#protecting-local-edits" title="Link to this heading"></a></h3>
+<p>The attached component trees (<code class="docutils literal notranslate"><span class="pre">linux/linux</span></code>, <code class="docutils literal notranslate"><span class="pre">u-boot</span></code>, <code class="docutils literal notranslate"><span class="pre">qemu</span></code>, …) are <strong>not</strong> in git: they are
+regenerated by <code class="docutils literal notranslate"><span class="pre">do_attach_infrabase</span></code> from the freshly fetched and patched sources. An edit made directly
+there and not folded back into the patchset therefore has no version-control safety net, and a re-attach
+would destroy it.</p>
+<p>To prevent that, each attach records a <code class="docutils literal notranslate"><span class="pre">sha256</span></code> manifest of the files it wrote, next to the tree it wrote
+them into (<code class="docutils literal notranslate"><span class="pre">&lt;tree&gt;.attach.sha256</span></code>, gitignored). The next attach verifies those files first and <strong>refuses</strong>
+to proceed if any of them changed:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ERROR: Refusing to re-attach linux (would overwrite the files above). Run
+'bitbake linux -c updiff' to fold them into the patch set, or set
+IB_FORCE_ATTACH=1 to discard them and re-attach.
+</pre></div>
+</div>
+<p>So the normal answer is to run <code class="docutils literal notranslate"><span class="pre">do_updiff</span></code> and keep your work as patches. <code class="docutils literal notranslate"><span class="pre">IB_FORCE_ATTACH=1</span></code> is the
+escape hatch when the edits are genuinely disposable; the previous tree is kept as <code class="docutils literal notranslate"><span class="pre">&lt;tree&gt;.back</span></code> in either
+case. Files produced by a later <code class="docutils literal notranslate"><span class="pre">make</span></code> are not in the manifest, so a freshly built tree still verifies
+clean, and a <code class="docutils literal notranslate"><span class="pre">clean</span></code> of a recipe drops the manifest on purpose.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It has to be noted that the generated patches are issued from the difference between the local
+files and the original <strong>patched</strong> files. This leads to an incremental patching process.
+The <em>diff</em> process is always done against the directory which is stored in <code class="docutils literal notranslate"><span class="pre">tmp/work/&lt;component&gt;/</span></code></p>
+</div>
+</section>
+<section id="building-a-patchset">
+<h3><span class="section-number">5.4.2. </span>Building a patchset<a class="headerlink" href="#building-a-patchset" title="Link to this heading"></a></h3>
+<p>Following a development sprint, patchsets have to be (re-)generated in order to keep track of the
+code evolution. This is achieved by means of the <code class="docutils literal notranslate"><span class="pre">do_updiff</span></code> task. It has to be executed in the
+<code class="docutils literal notranslate"><span class="pre">build</span></code> directory. For example, if we do changes in linux, the patchset will be generated
+with the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>~/infrabase/build$<span class="w"> </span>bitbake<span class="w"> </span>linux<span class="w"> </span>-c<span class="w"> </span>updiff
+</pre></div>
+</div>
+<p>As result, the patchset is generated in <code class="docutils literal notranslate"><span class="pre">build/meta-linux/recipes-linux/linux/files</span></code> directory with
+the file <code class="docutils literal notranslate"><span class="pre">000x-linux-5.10-r0-patches.inc</span></code> and its associated directory called <code class="docutils literal notranslate"><span class="pre">000x-linux-5.10-r0</span></code>
+in which the set of patches is located.</p>
+<p>The prefix is made of four digits and is incremented at each patchset generation.</p>
+<p>Based on these two elements, the patchset can be manually worked out.</p>
+<p>To include a patchset in a recipe, the recipe file has to include the following lines:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>FILESPATH:prepend:<span class="w"> </span>:<span class="o">=</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">THISDIR</span><span class="si">}</span><span class="s2">/files/0001-</span><span class="si">${</span><span class="nv">PF</span><span class="si">}</span><span class="s2">:"</span>
+
+require<span class="w"> </span>files/0001-<span class="si">${</span><span class="nv">PF</span><span class="si">}</span>-patches.inc
+</pre></div>
+</div>
+<p>Each recipe can have one or several patchsets according to the patch organization, and
+the first patchset should be called with prefix <code class="docutils literal notranslate"><span class="pre">0001-</span></code></p>
+</section>
+<section id="excluding-generated-files">
+<h3><span class="section-number">5.4.3. </span>Excluding generated files<a class="headerlink" href="#excluding-generated-files" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">do_updiff</span></code> diffs the whole attached tree, so anything <em>generated</em> in it would end up in the patchset.
+The shared exclusions (<code class="docutils literal notranslate"><span class="pre">.git</span></code>, <code class="docutils literal notranslate"><span class="pre">patches</span></code>, the kbuild leftovers, …) live in the <code class="docutils literal notranslate"><span class="pre">patch</span></code> class, and a
+recipe adds its own with <code class="docutils literal notranslate"><span class="pre">IB_UPDIFF_EXCLUDE</span></code> — a space-separated list of file or directory names matched
+at any depth. The QEMU recipe is the clearest case:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">IB_UPDIFF_EXCLUDE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"build subprojects GNUmakefile"</span>
+</pre></div>
+</div>
+<p>Those three are created by <code class="docutils literal notranslate"><span class="pre">do_configure</span></code>, i.e. <em>after</em> the pristine snapshot is taken, so without the
+exclusion they would read as thousands of added files. A blanket exclusion in the shared class would be
+unsafe — another recipe might ship real source under such a name — hence the per-recipe opt-in.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../container.html" class="btn btn-neutral float-left" title="4. Containerised build environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../dev_flow.html" class="btn btn-neutral float-right" title="6. Development flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

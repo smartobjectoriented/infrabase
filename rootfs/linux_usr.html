@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.1. Linux user applications (usr) &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3. User Guide" href="../user_guide.html" />
+    <link rel="prev" title="2. User applications and rootfs" href="rootfs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">1. Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="rootfs.html">2. User applications and rootfs</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.1. Linux user applications (usr)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#deployment-in-the-rootfs">2.1.1. Deployment in the rootfs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#development-of-modules-and-deployment">2.1.2. Development of modules and deployment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-rebuild-without-bitbake">2.1.3. Quick rebuild without bitbake</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">3. User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../container.html">4. Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build_system/build_system.html">5. Build System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dev_flow.html">6. Development  flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../base_extension/base_extension.html">7. Base environnement extension for Infrabase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="rootfs.html"><span class="section-number">2. </span>User applications and rootfs</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.1. </span>Linux user applications (usr)</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="linux-user-applications-usr">
+<span id="linux-usr"></span><h1><span class="section-number">2.1. </span>Linux user applications (usr)<a class="headerlink" href="#linux-user-applications-usr" title="Link to this heading"></a></h1>
+<p>In addition to the contents defined in the <em>rootfs</em>, additional applications can be built and deployed in the
+<code class="docutils literal notranslate"><span class="pre">linux/usr/</span></code> directory. Such applications are specific to the agency and do not belong to any external packages.</p>
+<section id="deployment-in-the-rootfs">
+<h2><span class="section-number">2.1.1. </span>Deployment in the rootfs<a class="headerlink" href="#deployment-in-the-rootfs" title="Link to this heading"></a></h2>
+<p>All applications and files which need to be deployed in the rootfs must be first installed
+in the <code class="docutils literal notranslate"><span class="pre">linux/usr/build/deploy</span></code> directory. To do so, the current approach is to edit
+the <code class="docutils literal notranslate"><span class="pre">usr-linux</span></code> recipe adding the <em>install</em> command, for example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usr_do_install_file_root<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">IB_TARGET</span><span class="si">}</span><span class="s2">/build/src/examples/hello"</span>
+</pre></div>
+</div>
+<p>This command will copy the <code class="docutils literal notranslate"><span class="pre">hello</span></code> binary to <code class="docutils literal notranslate"><span class="pre">build/deploy/root</span></code>, which ends up in the
+<code class="docutils literal notranslate"><span class="pre">root/</span></code> home directory of the target rootfs. Companion helpers exist for a whole directory
+(<code class="docutils literal notranslate"><span class="pre">usr_do_install_directory_root</span></code>) and for an arbitrary destination
+(<code class="docutils literal notranslate"><span class="pre">usr_do_install_file_dir</span></code>).</p>
+</section>
+<section id="development-of-modules-and-deployment">
+<h2><span class="section-number">2.1.2. </span>Development of modules and deployment<a class="headerlink" href="#development-of-modules-and-deployment" title="Link to this heading"></a></h2>
+<p>Out-of-tree kernel modules are compiled from <code class="docutils literal notranslate"><span class="pre">linux/usr/src/modules/</span></code>, whose <code class="docutils literal notranslate"><span class="pre">Makefile</span></code>
+selects the module set according to <code class="docutils literal notranslate"><span class="pre">IB_PLATFORM</span></code> as defined in <code class="docutils literal notranslate"><span class="pre">build/conf/local.conf</span></code>.
+They are built against the attached kernel tree (<code class="docutils literal notranslate"><span class="pre">linux/linux</span></code>) with the kernel’s own cross
+compiler, so the kernel must have been built first.</p>
+<p>The resulting <code class="docutils literal notranslate"><span class="pre">.ko</span></code> files are deployed in the <code class="docutils literal notranslate"><span class="pre">root/</span></code> home directory of the target
+<code class="docutils literal notranslate"><span class="pre">rootfs</span></code>. The <code class="docutils literal notranslate"><span class="pre">insmod</span></code> application can then be used from the <em>shell</em> in order to load the
+module into the kernel.</p>
+<p>A module can be helpful for testing purposes, for example to test kernel functionalities.</p>
+</section>
+<section id="quick-rebuild-without-bitbake">
+<h2><span class="section-number">2.1.3. </span>Quick rebuild without bitbake<a class="headerlink" href="#quick-rebuild-without-bitbake" title="Link to this heading"></a></h2>
+<p>Going through bitbake for every edit is slow. <code class="docutils literal notranslate"><span class="pre">makeusr.sh</span></code> reproduces what the recipe does
+in <code class="docutils literal notranslate"><span class="pre">do_build</span></code> — CMake, <code class="docutils literal notranslate"><span class="pre">make</span></code>, and the kernel modules — and deploys locally into
+<code class="docutils literal notranslate"><span class="pre">linux/usr/build/deploy</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>linux/usr<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>makeusr.sh
+</pre></div>
+</div>
+<p>It requires the buildroot toolchain to have been built once, since it takes the CMake
+toolchain file from <code class="docutils literal notranslate"><span class="pre">linux/rootfs/host</span></code>. Run <code class="docutils literal notranslate"><span class="pre">makeusr.sh</span> <span class="pre">-h</span></code> for the options (build type,
+platform, skipping the modules, cleaning). Use <code class="docutils literal notranslate"><span class="pre">deploy.sh</span> <span class="pre">usr-linux</span></code> when you want the
+result in the target rootfs.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="rootfs.html" class="btn btn-neutral float-left" title="2. User applications and rootfs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../user_guide.html" class="btn btn-neutral float-right" title="3. User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

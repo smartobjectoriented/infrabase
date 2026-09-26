@@ -1,0 +1,153 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1. Introduction &mdash; Infrabase 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/style.css" />
+      <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css?v=8245a45c" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2. User applications and rootfs" href="rootfs/rootfs.html" />
+    <link rel="prev" title="EDGEMTech Infrabase Devtools &amp; Environment" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Infrabase
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-it-produces">1.1. What it produces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scope">1.2. Scope</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rootfs/rootfs.html">2. User applications and rootfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">3. User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">4. Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build_system/build_system.html">5. Build System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev_flow.html">6. Development  flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="base_extension/base_extension.html">7. Base environnement extension for Infrabase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">8. Coding conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">9. Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">10. Glossary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Infrabase</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">1. </span>Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction">
+<span id="id1"></span><h1><span class="section-number">1. </span>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">Infrabase</span></code> provides the developer with a base environment to deal with embedded software to be deployed on
+different hardware and emulated boards.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Infrabase</span></code> harnesses the power of BitBake’s highly modular, recipe-driven architecture while seamlessly integrating prebuilt packages into the BitBake ecosystem. This approach is grounded in years of hands-on experience with R&amp;D projects and embedded Linux development, where the typical software stack includes:</p>
+<ul class="simple">
+<li><p>A bootloader like U-Boot</p></li>
+<li><p>The Linux kernel</p></li>
+<li><p>The root filesystem</p></li>
+<li><p>A set of user-space applications</p></li>
+</ul>
+<section id="what-it-produces">
+<h2><span class="section-number">1.1. </span>What it produces<a class="headerlink" href="#what-it-produces" title="Link to this heading"></a></h2>
+<p>From a single <code class="docutils literal notranslate"><span class="pre">build.sh</span> <span class="pre">bsp-linux</span></code> you get a complete, bootable system for the selected
+platform: the bootloader (optionally behind an ATF/OP-TEE boot chain), a kernel and its device
+tree packed into a FIT image, a root filesystem built with <em>buildroot</em>, and the user-space
+applications and kernel modules from <code class="docutils literal notranslate"><span class="pre">linux/usr</span></code>. <code class="docutils literal notranslate"><span class="pre">deploy.sh</span></code> then writes all of it to a
+loopback SD-card image, to a real device, or publishes it for a network install, and — on the
+emulated platforms — <code class="docutils literal notranslate"><span class="pre">st.sh</span></code> boots the result under QEMU.</p>
+<p>The supported platforms range from QEMU’s <code class="docutils literal notranslate"><span class="pre">virt</span></code> machine in 32- and 64-bit to the Raspberry
+Pi 4; they are listed in the <a class="reference internal" href="user_guide.html#user-guide"><span class="std std-ref">user guide</span></a>, and selecting one is a single
+variable in <code class="docutils literal notranslate"><span class="pre">build/conf/local.conf</span></code>.</p>
+</section>
+<section id="scope">
+<h2><span class="section-number">1.2. </span>Scope<a class="headerlink" href="#scope" title="Link to this heading"></a></h2>
+<p>This repository is the <strong>generic base</strong>: a plain Linux system, and the machinery to fetch,
+patch, build, deploy and run it. It is meant to be extended — product trees derive from it and
+add their own layers (vendor BSPs, hypervisors, additional root filesystems) on top of the same
+scripts and classes, and the base is kept aligned with them.</p>
+<p>Two consequences are worth knowing up front: components are <strong>fetched from upstream and patched
+from tracked patchsets</strong> rather than vendored, so your changes to a component live as patches
+(see <a class="reference internal" href="dev_flow.html#dev-flow"><span class="std std-ref">the development flow</span></a>); and <code class="docutils literal notranslate"><span class="pre">bitbake</span></code> here runs <strong>unprivileged</strong>, with
+individual privileged operations escalating through <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">-n</span></code>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="EDGEMTech Infrabase Devtools &amp; Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="rootfs/rootfs.html" class="btn btn-neutral float-right" title="2. User applications and rootfs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, EDGEMTech Ltd (Switzerland).
+      <span class="lastupdated">Last updated on 26 Sep 2026, 08:55.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
