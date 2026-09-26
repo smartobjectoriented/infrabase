@@ -1,9 +1,30 @@
 --- /home/rossierd/soo/infrabase/build/tmp/work/usr-linux-1.0-r0/usr-linux-1.0/src/graphic/CMakeLists.txt	1970-01-01 01:00:00.000000000 +0100
 +++ ./src/graphic/CMakeLists.txt	2025-08-28 13:15:04.926201072 +0200
-@@ -0,0 +1,6 @@
+@@ -0,0 +1,27 @@
 +
-+add_subdirectory(drm_tool)
-+add_subdirectory(drm-utils)
-+add_subdirectory(kmscube)
-+add_subdirectory(gbmtest)
-+add_subdirectory(fb_benchmark)
++# DRM/KMS and GL demos. Every one of them needs libdrm, fb_benchmark gbm too,
++# and kmscube and gbmtest EGL and GLESv2 on top — none of which the minimal
++# buildroot configuration ships (it keeps fbdev + evdev for LVGL). Build each
++# one only when the rootfs provides what it links against, instead of failing
++# the whole user-space configure on a fresh tree.
++
++find_package(PkgConfig REQUIRED)
++pkg_check_modules(IB_GRAPHIC_DRM QUIET libdrm)
++pkg_check_modules(IB_GRAPHIC_GBM QUIET gbm)
++pkg_check_modules(IB_GRAPHIC_GL QUIET egl glesv2)
++
++if(IB_GRAPHIC_DRM_FOUND)
++	add_subdirectory(drm_tool)
++	add_subdirectory(drm-utils)
++else()
++	message(STATUS "graphic: no libdrm in the rootfs, skipping the DRM demos")
++endif()
++
++if(IB_GRAPHIC_DRM_FOUND AND IB_GRAPHIC_GBM_FOUND)
++	add_subdirectory(fb_benchmark)
++
++	if(IB_GRAPHIC_GL_FOUND)
++		add_subdirectory(kmscube)
++		add_subdirectory(gbmtest)
++	endif()
++endif()
