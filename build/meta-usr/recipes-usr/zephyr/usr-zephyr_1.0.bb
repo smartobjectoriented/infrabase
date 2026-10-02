@@ -171,9 +171,16 @@ do_build () {
 }
 addtask do_build
 
-# No do_deploy: a Zephyr image is not installed into a rootfs, it *is* the
-# system. bsp-zephyr picks the binary up through IB_ZEPHYR_IMAGE and puts
-# it in the ITB.
+# A Zephyr image is not installed into a rootfs, it *is* the system.
+# bsp-zephyr picks the binary up through IB_ZEPHYR_IMAGE and puts it in the
+# ITB, so `deploy.sh usr-zephyr` is bsp-zephyr:do_deploy_boot: repack the ITB
+# (or stage the slot under mcuboot) and write p1, without the boot chain.
+do_deploy[nostamp] = "1"
+do_deploy[depends] = "bsp-zephyr:do_deploy_boot"
+python do_deploy () {
+    bb.plain("Zephyr image deployed")
+}
+addtask do_deploy
 
 do_clean[nostamp] = "1"
 do_clean () {
