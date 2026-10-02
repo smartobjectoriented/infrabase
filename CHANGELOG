@@ -1,7 +1,7 @@
 
 v1.0.1 (2 oct 2026)
 
-Patch release on the release/v1.0 line: two fixes to v1.0.0.
+Patch release on the release/v1.0 line: four fixes to v1.0.0.
 
 	•	deploy.sh can redeploy just the kernel. "deploy.sh linux" failed,
 		since no kernel recipe had a deploy task; the kernel recipes now
@@ -18,6 +18,17 @@ Patch release on the release/v1.0 line: two fixes to v1.0.0.
 		indexed a 160-entry interrupt array with BCM2711 interrupt numbers
 		up to 208. The avz recipe follows the SO3 fix (so3#334) until SO3
 		tags a release carrying it. (#53)
+
+	•	QEMU is no longer rebuilt from scratch by every "build.sh qemu".
+		The configure step re-ran each time, and QEMU's configure starts by
+		deleting its build directory; it now runs only when the target list
+		or the options change, and the build is incremental. (#57)
+
+	•	U-Boot stays at its prompt when no OS has been deployed. With
+		U-Boot alone on the boot partition there is no uEnv.txt, and the
+		boot command imported whatever lay in memory, then failed on an
+		undefined "start". The QEMU boot command also imports uEnv.txt
+		with its exact length now, as the Raspberry Pi one did. (#58)
 
 v1.0.0 (26 sep 2026)
 
