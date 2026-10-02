@@ -19,7 +19,7 @@
 #
 # Usage: ibversion.sh
 
-IB_VERSION_FALLBACK="1.0.0"
+IB_VERSION_FALLBACK="1.0.1"
 
 _tree=$(cd "$(dirname "$(command -v -- "$0")")/.." && pwd)
 

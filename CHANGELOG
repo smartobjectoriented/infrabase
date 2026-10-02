@@ -1,4 +1,24 @@
 
+v1.0.1 (2 oct 2026)
+
+Patch release on the release/v1.0 line: two fixes to v1.0.0.
+
+	•	deploy.sh can redeploy just the kernel. "deploy.sh linux" failed,
+		since no kernel recipe had a deploy task; the kernel recipes now
+		hand over to their BSP, which repacks the ITB and writes it onto
+		the boot partition without compiling anything ("deploy.sh
+		usr-zephyr" for a Zephyr image). The partial Linux boot deploy also
+		used to write the ITB of the previous full build: a rebuilt kernel
+		never reached the card. A kernel that was never built for the
+		platform is now reported by name instead of failing inside
+		mkimage. (#54, #56)
+
+	•	AVZ on the Raspberry Pi 4 (rpi4_64): the agency took an EL2 data
+		abort as soon as the network started, because the hypervisor
+		indexed a 160-entry interrupt array with BCM2711 interrupt numbers
+		up to 208. The avz recipe follows the SO3 fix (so3#334) until SO3
+		tags a release carrying it. (#53)
+
 v1.0.0 (26 sep 2026)
 
 First release of Infrabase, and the first line with a release branch
