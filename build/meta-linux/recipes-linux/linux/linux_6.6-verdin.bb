@@ -20,6 +20,7 @@ SRCREV = "6282921b6825fef6a1243e1c80063421d41e2576"
 FILESPATH:prepend = "${THISDIR}/files/0001-${PF}:"
 
 require files/0001-${PF}-patches.inc
+require linux-deploy.inc
 
 # Where the working directory will be placed in infrabase root dir
 IB_TARGET = "${IB_LINUX_PATH}"
