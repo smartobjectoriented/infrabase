@@ -31,9 +31,21 @@ IB_TARGET = "${IB_AVZ_PATH}"
 # IB_SO3_TAG records the human-readable tag SRCREV corresponds to; keep the
 # two in sync (git rev-parse <tag>^{commit}).
 
-IB_SO3_TAG = "v6.3.1"
+# Currently v6.3.1 plus the AVZ NR_IRQS fix, which is on main but not yet in a
+# tag. AVZ's gic_handle() bounded INTIDs only against 1021 while irq_to_desc()
+# indexed an array of NR_IRQS entries, and NR_IRQS was defined twice, at 160.
+# BCM2711 raises up to 208 and its genet ethernet sits at 189/190 — on rpi4_64
+# the agency booted to userspace and then took an EL2 data abort the moment
+# the network started. smartobjectoriented/so3#334, merged 2026-09-15.
+#
+# Pinned to the merge commit rather than a tag because v6.3.1 predates it:
+# move both lines back to a tag as soon as SO3 cuts the release that carries
+# it (v6.3.2 or later) — a commit answers "which AVZ is in this image" less
+# well than a tag does. Backported from opencn-ng.
+
+IB_SO3_TAG = "v6.3.1+so3#334"
 SRC_URI = "git://github.com/smartobjectoriented/so3.git;nobranch=1;protocol=https"
-SRCREV = "f68637b89361058c11a8cfa8fb6046e8605d0e5a"
+SRCREV = "f09b674d360da6979fc416cc56c9b43899baf5e5"
 
 python do_handle_fetch_git() {
 
