@@ -505,6 +505,45 @@ def index_patchset(directory):
             idx.setdefault(pid, []).append(fname)
     return idx
 
+def ib_refresh_attach_manifest(d, rels):
+    """Rewrite the ${IB_TARGET}.attach.sha256 entries for the given
+    relative paths with the files' current hashes: added when the file is
+    new, dropped when it is gone. Other entries are kept as they are."""
+    import hashlib
+
+    target = d.getVar('IB_TARGET')
+    manifest = target + '.attach.sha256'
+    if not os.path.isfile(manifest):
+        return
+
+    # sha256sum lines are "<hash>  ./<rel>". A line it escaped (leading
+    # backslash, for a name with a newline or backslash) is kept verbatim.
+    entries = {}
+    with open(manifest, 'r', errors='surrogateescape') as f:
+        for line in f:
+            line = line.rstrip('\n')
+            if not line.startswith('\\') and len(line) > 66 and line[64:66] == '  ':
+                entries[line[66:]] = line[:64]
+            else:
+                entries[line] = None
+
+    for rel in rels:
+        key = './' + rel
+        path = os.path.join(target, rel)
+        if os.path.isfile(path) and not os.path.islink(path):
+            h = hashlib.sha256()
+            with open(path, 'rb') as f:
+                for chunk in iter(lambda: f.read(1 << 20), b''):
+                    h.update(chunk)
+            entries[key] = h.hexdigest()
+        else:
+            entries.pop(key, None)
+
+    with open(manifest, 'w', errors='surrogateescape') as f:
+        for key in sorted(entries):
+            f.write(key + '\n' if entries[key] is None
+                    else f"{entries[key]}  {key}\n")
+
 addtask do_updiff
 do_updiff[nostamp] = "1"
 
@@ -656,6 +695,17 @@ python do_updiff() {
                 f"chain into a single patch, then re-run updiff."
             )
             skipped_chain += 1
+
+    # The series now holds what IB_TARGET has for every file just folded
+    # in, so move those files' entries in the attach manifest to their
+    # current content. Without this the dirty-tree guards in base.bbclass
+    # (attach and clean) keep reporting the edits updiff just captured,
+    # and the only way past them is IB_FORCE_ATTACH -- the very override
+    # that discards edits. A skipped chain was not folded: its old hash
+    # stays, and the guards keep flagging it.
+    folded = [pid for pid in staging_idx
+              if len(target_idx.get(pid, [])) <= 1]
+    ib_refresh_attach_manifest(d, folded)
 
     # Drop the staging directory.
     shutil.rmtree(staging)

@@ -140,6 +140,10 @@ do_build () {
 
 do_clean[nostamp] = "1"
 addtask do_clean
+# The usr build rewrites attached files itself (see the manifest note in
+# do_clean below), so base.bbclass's clean guard would read every build as
+# an unfolded edit and refuse every clean.
+IB_CLEAN_GUARD = "0"
 # Implemented in Python on purpose: a *shell* task needs ${WORKDIR}/temp to
 # exist so bitbake can create its output fifo there, but do_clean often runs
 # when that dir is absent (fresh tree / already-cleaned), giving
