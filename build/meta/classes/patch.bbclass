@@ -323,11 +323,12 @@ python patch_do_diffcompose() {
     #
     # An entry holding a '/' is a path from the tree root instead (fnmatch
     # pattern), for a generated file whose basename a real source shares:
-    # U-Boot's include/config.h against arch/*/include/asm/config.h.
+    # U-Boot's include/config.h against arch/*/include/asm/config.h. A
+    # leading '/' names a file at the root itself.
     path_excludes = []
     for x in (d.getVar('IB_UPDIFF_EXCLUDE') or '').split():
         if '/' in x:
-            path_excludes.append(x)
+            path_excludes.append(x.lstrip('/'))
         else:
             excludes += f' --exclude={shlex.quote(x)}'
     statement = (
