@@ -63,7 +63,7 @@ def __platform_init_storage(d):
 
         print("Linking the storage image", IB_DIR)
 
-        os.makedirs(os.path.join(WORKDIR, "filesystem"), exist_ok=True)
+        os.makedirs(os.path.join(IB_DIR, "filesystem"), exist_ok=True)
 
         target_link = os.path.join(IB_DIR, f"filesystem/{store_filename}")
         source_link = store_path
@@ -162,7 +162,7 @@ def __platform_init_storage(d):
         utils_sudo(["mkfs.ext4", "-L", "rootfs1", f"/dev/{devname}2"], check=True)
 
     if IB_STORAGE_MODE == "soft":
-        utils_sudo(["losetup", "-D"])
+        utils_loop_detach(store_path)
 
     print("Done! The storage is now initialized")
 
@@ -195,6 +195,7 @@ def __do_fs_init_storage(d):
     # Finally create a symlink to the workdir to be able
     # to mount/umount more conveniently
     target_link = os.path.join(d.getVar('IB_DIR'), "filesystem/work")
+    os.makedirs(os.path.dirname(target_link), exist_ok=True)
 
     # Check if the symbolic link already exists
     if os.path.islink(target_link):
@@ -371,4 +372,7 @@ def __do_fs_umount(d):
                      expect_mounted=(d.getVar('IB_PARTITION_LAYOUT') or
                                      "rootfs") != "ab")
 
-    utils_sudo(["losetup", "-D"])
+    # The image __do_fs_mount attached. A "hard" card has no loop device.
+    if d.getVar('IB_STORAGE_MODE') == "soft":
+        utils_loop_detach(os.path.join(IB_FILESYSTEM_PATH, "work",
+                                       f"sdcard.img.{d.getVar('IB_PLATFORM')}"))

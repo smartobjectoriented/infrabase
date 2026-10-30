@@ -139,19 +139,24 @@ python do_deploy() {
 
 addtask do_deploy
 
+# The kernel top Makefile is patched with ARCH=arm64/aarch64 pinned (0011);
+# right for the 64-bit platforms, wrong for virt32. Command-line assignments
+# beat Makefile ones — same fix as in linux_6.12.bb.
+IB_KMAKE_ARGS = "${@'ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-' if (d.getVar('IB_PLAT_CPU') or '') == 'arm' else ''}"
+
 # Build extra components which is not in src/ directory like modules
 do_build:prepend () {
 
 	# Modules
- 
-	if [ ! -f ${IB_LINUX_PATH}/Module.symvers ]; then 
-        	echo "Generating Module.symvers..." ; 
-        	make -j${CORES} -C ${IB_LINUX_PATH} modules ; 
-            make INSTALL_MOD_PATH=${IB_ROOTFS_PATH}/target -C ${IB_LINUX_PATH} modules_install ; \
+
+	if [ ! -f ${IB_LINUX_PATH}/Module.symvers ]; then
+        	echo "Generating Module.symvers..." ;
+        	make ${IB_KMAKE_ARGS} -j${CORES} -C ${IB_LINUX_PATH} modules ;
+            make ${IB_KMAKE_ARGS} INSTALL_MOD_PATH=${IB_ROOTFS_PATH}/target -C ${IB_LINUX_PATH} modules_install ; \
     fi
 
-	make -C ${IB_LINUX_PATH} M=${IB_TARGET}/src/modules modules
-}	
+	make ${IB_KMAKE_ARGS} -C ${IB_LINUX_PATH} M=${IB_TARGET}/src/modules modules
+}
 
 # Installing usr apps mean to move the binary and all files which need to
 # be copied to the rootfs. Be aware that it is a deploy directory and not
@@ -174,7 +179,7 @@ usr_linux_clean () {
     # Clean the modules — only when there is a kernel tree to clean them
     # against; before the first linux build there is nothing to clean.
     if [ -d ${IB_TARGET}/src/modules ] && [ -d ${IB_LINUX_PATH} ]; then
-	    make -C ${IB_LINUX_PATH} M=${IB_TARGET}/src/modules clean
+	    make ${IB_KMAKE_ARGS} -C ${IB_LINUX_PATH} M=${IB_TARGET}/src/modules clean
     fi
     
     rm -f ${TMPDIR}/stamps/usr-linux*

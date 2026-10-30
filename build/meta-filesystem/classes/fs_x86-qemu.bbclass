@@ -41,7 +41,7 @@ def do_filesystem_platform_init_storage(d):
 
     print("Linking the storage image", IB_DIR)
 
-    os.makedirs(os.path.join(WORKDIR, "filesystem"), exist_ok=True)
+    os.makedirs(os.path.join(IB_DIR, "filesystem"), exist_ok=True)
 
     target_link = os.path.join(IB_DIR, "filesystem/"+store_filename)
     source_link = os.path.join(WORKDIR, store_filename)
@@ -68,6 +68,6 @@ def do_filesystem_platform_init_storage(d):
     utils_sudo(["mke2fs", "-F", "-t", "ext4", "/dev/{}1".format(devname)])
     utils_sudo(["e2label", "/dev/{}1".format(devname), "rootfs"])
 
-    utils_sudo(["losetup", "-D"])
+    utils_loop_detach(os.path.join(WORKDIR, store_filename))
 
     print("Done! The storage is now initialized")
