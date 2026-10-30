@@ -63,7 +63,7 @@ def __platform_init_storage(d):
 
         print("Linking the storage image", IB_DIR)
 
-        os.makedirs(os.path.join(WORKDIR, "filesystem"), exist_ok=True)
+        os.makedirs(os.path.join(IB_DIR, "filesystem"), exist_ok=True)
 
         target_link = os.path.join(IB_DIR, f"filesystem/{store_filename}")
         source_link = store_path
@@ -195,6 +195,7 @@ def __do_fs_init_storage(d):
     # Finally create a symlink to the workdir to be able
     # to mount/umount more conveniently
     target_link = os.path.join(d.getVar('IB_DIR'), "filesystem/work")
+    os.makedirs(os.path.dirname(target_link), exist_ok=True)
 
     # Check if the symbolic link already exists
     if os.path.islink(target_link):
