@@ -10,8 +10,8 @@ inherit rootfs
 # makefiles, objects, build/deploy): none of it is source, and without this
 # updiff turns every CMake-generated file into a patch. Neither the linux nor
 # the so3 usr tree ships a directory of that name. .ib_last_arch is the arch
-# marker do_build writes.
-IB_UPDIFF_EXCLUDE:append = " build .ib_last_arch"
+# marker do_build writes, .ib_last_toolchain the one usr-so3 writes.
+IB_UPDIFF_EXCLUDE:append = " build .ib_last_arch .ib_last_toolchain"
 
 # Deployment of user space components
 

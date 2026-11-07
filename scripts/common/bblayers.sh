@@ -69,9 +69,8 @@ show_env() {
 # layer given as a path relative to TOPDIR.
 #
 # meta-so3 is the canonical home of the AVZ recipe in every tree of this
-# family, so it keeps that name here even though Infrabase carries only its
-# avz half; the SO3 *kernel* recipe stays out. This base boots Linux,
-# standalone or as an AVZ guest, and a product adds the rest.
+# family. This base boots Linux or SO3, standalone or as an AVZ guest, and a
+# product adds the rest. meta-toolchain carries the musl toolchain of usr-so3.
 #
 # The overlay is deliberately anonymous here. Infrabase has no business
 # knowing what a product layers on top, or why; it only knows that a tree may
@@ -102,7 +101,7 @@ regen_bblayers() {
 		echo 'BBLAYERS = " \'
 		for _l in meta meta-qemu meta-filesystem meta-uboot meta-linux \
 		          meta-rootfs meta-usr meta-bsp meta-atf meta-so3 \
-		          meta-zephyr $IB_PRODUCT_LAYERS; do
+		          meta-toolchain meta-zephyr $IB_PRODUCT_LAYERS; do
 			echo "  \${TOPDIR}/$_l \\"
 		done
 		if test -n "$_overlay"; then

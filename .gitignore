@@ -96,6 +96,7 @@ modules.order
 # Build system generated directories
 u-boot
 /qemu
+/so3
 linux/linux
 rootfs/buildroot
 

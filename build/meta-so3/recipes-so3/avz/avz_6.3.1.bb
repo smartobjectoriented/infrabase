@@ -87,6 +87,12 @@ do_build[nostamp] = "1"
 do_build () {
 	bbplain "Building AVZ (${IB_CONFIG})..."
 
+	# The tree sits inside this repository: without a ceiling, the banner
+	# version would come from a git tag of Infrabase rather than from the
+	# fallback version.h carries for a tree with no git metadata.
+
+	export GIT_CEILING_DIRECTORIES="${IB_DIR}"
+
 	cd ${IB_TARGET}
 	make
 }

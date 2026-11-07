@@ -67,6 +67,7 @@ N_QEMU_INSTANCES=`ps -A | grep qemu-system | wc -l`
 
 launch_qemu() {
     QEMU_MAC_ADDR="$(printf 'DE:AD:BE:EF:%02X:%02X\n' $((N_QEMU_INSTANCES)) $((N_QEMU_INSTANCES)))"
+    QEMU_ETH_MAC_ADDR="$(printf 'DE:AD:BE:EF:1%X:%02X\n' $((N_QEMU_INSTANCES)) $((N_QEMU_INSTANCES)))"
 
     GDB_PORT=$((${GDB_PORT_BASE} + ${N_QEMU_INSTANCES}))
 
@@ -119,6 +120,11 @@ launch_qemu() {
         printf "       Ctrl-A x in its console, or kill %s\n" "${_st_busy% }" >&2
         exit 1
     fi
+
+    # SO3's only Ethernet driver is the LAN9118 (smc911x), which the QEMU patch
+    # creates when the on-board NIC slot is filled. A Linux guest ignores it.
+
+    ETH_OPT="-nic user,model=lan9118,mac=${QEMU_ETH_MAC_ADDR}"
 
     if [ "$IB_PLATFORM" == "virt64" ]; then
     QEMU_BIN="$IB_ROOT_DIR/qemu/build/qemu-system-aarch64"
@@ -180,6 +186,7 @@ launch_qemu() {
 		${DISPLAY_OPT} \
 		-netdev user,id=n1,hostfwd=tcp::2222-:22 \
 		-device virtio-net-device,netdev=n1,mac=${QEMU_MAC_ADDR} \
+		${ETH_OPT} \
         	-gdb tcp::${GDB_PORT}
 	fi
 
@@ -203,6 +210,7 @@ launch_qemu() {
 		${DISPLAY_OPT} \
 		-netdev user,id=n1,hostfwd=tcp::2222-:22 \
 		-device virtio-net-device,netdev=n1,mac=${QEMU_MAC_ADDR} \
+		${ETH_OPT} \
         	-gdb tcp::${GDB_PORT}
 	fi
 

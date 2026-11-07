@@ -8,6 +8,7 @@
 # build.sh, mount.sh) is expected to have opened a sudo session.
 
 IB_ROOTFS_PATH:linux = "${IB_DIR}/linux/rootfs"
+IB_ROOTFS_PATH:so3 = "${IB_DIR}/so3/rootfs"
 
 inherit filesystem
 
