@@ -285,6 +285,9 @@ python patch_do_diffcompose() {
         'efi_miniapp_*.h',
         # initramfs build deps
         '.initramfs_*',
+        # what do_attach_infrabase leaves next to a tree nested in this one
+        # (so3/usr in so3)
+        '*.attach.sha256', '*.attach.pf', '*.attach.series', '*.back',
     ]
     # Exclude the quilt working directory + kbuild-generated trees:
     #   patches/      — quilt staging from do_attach_infrabase
