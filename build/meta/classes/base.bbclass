@@ -408,6 +408,7 @@ do_unpack[postfuncs] = "do_handle_fetch_git"
  
 # Default to the safe behaviour; set IB_FORCE_ATTACH=1 (env or local.conf)
 # to override the dirty-tree guards below.
+
 IB_FORCE_ATTACH ??= "0"
 
 # Edits in ${IB_TARGET} that the patch set does not hold.
@@ -430,6 +431,7 @@ IB_FORCE_ATTACH ??= "0"
 # artefacts and refuse a perfectly clean tree. Filtered here as well as
 # pruned at attach time, so manifests recorded before that fix stop
 # blocking too.
+
 def ib_unfolded_edits(d):
     import os
     import re
@@ -475,6 +477,7 @@ def ib_guard_unfolded_edits(d, action, consequence):
 # do_updiff) would never re-run do_patch/do_attach_infrabase. Each file is also
 # registered as a parse dependency, so editing one invalidates the parse cache
 # and the digest is recomputed. Call it from anonymous python.
+
 def ib_patchset_digest(d):
     import hashlib
 
@@ -497,6 +500,7 @@ def ib_patchset_digest(d):
 # patch, a SRCREV rolled back) finds its old stamp still there, BitBake deems the
 # task current, and the tree is silently left at the newer content. Add it to
 # the task's prefuncs; the stamp for the current key is written after the task.
+
 python ib_drop_stale_stamps() {
     import glob
 
@@ -519,6 +523,7 @@ do_attach_infrabase[prefuncs] += "ib_attach_guard"
 # Opt out with IB_CLEAN_GUARD = "0" in a recipe whose own build rewrites
 # attached files (see usr.bbclass), where the manifest cannot tell an edit
 # from a build step.
+
 IB_CLEAN_GUARD ??= "1"
 
 python ib_clean_guard() {
@@ -529,6 +534,36 @@ python ib_clean_guard() {
         'does not have the files above')
 }
 do_clean[prefuncs] += "ib_clean_guard"
+
+# The patches SRC_URI applies depend on the overrides, and the stamps do not:
+# changing an override leaves the tree as it was built. The series that built
+# the tree is therefore recorded in ${IB_TARGET}.attach.series for do_updiff.
+
+def ib_series_names(d):
+    names = set()
+    for uri in (d.getVar('SRC_URI') or '').split():
+        if uri.startswith('file://'):
+            name = os.path.basename(uri[len('file://'):].split(';')[0])
+            if name.endswith(('.patch', '.diff')):
+                names.add(name)
+    return names
+
+def ib_attached_series(d):
+    try:
+        with open(d.getVar('IB_TARGET') + '.attach.series') as f:
+            return set(f.read().split())
+    except OSError:
+        return None
+
+def ib_record_attached_series(d, names):
+    with open(d.getVar('IB_TARGET') + '.attach.series', 'w') as f:
+        f.writelines(n + '\n' for n in sorted(names))
+
+python ib_attach_series() {
+    if d.getVar('IB_TARGET'):
+        ib_record_attached_series(d, ib_series_names(d))
+}
+do_attach_infrabase[postfuncs] += "ib_attach_series"
 
 do_attach_infrabase () {
 	ib_manifest="${IB_TARGET}.attach.sha256"

@@ -208,33 +208,22 @@ python patch_save_pristine() {
 # in its own layer directory must point it there (with :=, so THISDIR is the
 # bbappend's): otherwise updiff never sees the existing patches and builds a
 # second, unused patchset next to the base recipe.
+
 IB_PATCHSET_DIR ??= "${FILE_DIRNAME}/files"
 
-# Infrabase patch generation algorithm
+# Stage what was edited in IB_TARGET since do_attach_infrabase, the baseline
+# being the attach manifest: one "pristine -> IB_TARGET" diff per file in
+# ${IB_PATCHSET_DIR}/${PF}/, listed in .edited for do_updiff. A file the user did
+# not touch is not looked at, so a patch set updated behind the tree stays intact.
 #
-# Produces per-file patches in ${IB_PATCHSET_DIR}/${PF}/ comparing the
-# pristine upstream sources (${S}.pristine, saved by patch_save_pristine
-# right after do_unpack) against the local working tree (IB_TARGET). Each
-# staged patch is therefore a self-contained "upstream → final" diff for
-# one source file; do_updiff can drop it in place at the slot of the
-# existing patch for that file, fully replacing the previous content.
-#
-# Patch headers use git-style "a/<rel>" / "b/<rel>" labels so the resulting
-# patches apply cleanly with `patch -p1` from the source tree root,
-# independent of where the project was checked out.  Earlier versions of
-# this task wrote absolute paths on both sides (e.g. /home/.../<user>/.../),
-# which silently broke as soon as the repository was cloned anywhere else.
-#
-# The staging directory ${IB_PATCHSET_DIR}/${PF}/ is wiped and recreated
-# on every run so that stale patches from previous invocations do not leak
-# into the new patchset (do_updiff promotes this directory in place into
-# the existing numbered patchset).
+# Without a manifest, every file differing from pristine counts as edited.
+
+do_diffcompose[prefuncs] += "do_check_attach"
 
 python patch_do_diffcompose() {
+    import fnmatch
     import os
     import re
-    import fnmatch
-    import shlex
     import shutil
     import subprocess
 
@@ -252,16 +241,9 @@ python patch_do_diffcompose() {
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
 
-    diff_files_tmp = os.path.join(d.getVar('TMPDIR'), "diff_files.tmp")
+    # Build artefacts that leak into IB_TARGET when the user runs `make`
+    # before `updiff`, matched against every file and directory name.
 
-    # Enumerate differing/added/removed files.  cwd=target_dir so the target
-    # side of each line is reported as "./<rel>".
-    #
-    # Excludes filter out build artefacts that leak into IB_TARGET when the
-    # user runs `make` before `updiff`. Without this filter the patchset
-    # gets polluted with hundreds of generated files (kconfig output, dtc
-    # intermediates, kbuild auto-generated headers, etc.). Patterns are
-    # matched against basenames by `diff -x`.
     exclude_patterns = [
         # compiler / linker object artefacts. NOTE: *.lds is NOT excluded —
         # SO3 ships hand-written linker scripts (e.g. arch/*/so3.lds) and
@@ -304,118 +286,62 @@ python patch_do_diffcompose() {
         'efi_miniapp_*.h',
         # initramfs build deps
         '.initramfs_*',
+        # what do_attach_infrabase leaves next to a tree nested in this one
+        # (so3/usr in so3)
+        '*.attach.sha256', '*.attach.pf', '*.attach.series', '*.back',
     ]
     # Exclude the quilt working directory + kbuild-generated trees:
     #   patches/      — quilt staging from do_attach_infrabase
     #   include/generated/ — kbuild's auto-generated arch headers (cfi.h,
     #                       delay.h, etc. from arch/*/include/asm/Kbuild)
     #   include/config/    — kbuild's symbol-tracking files
-    excludes = ' '.join(f'-x "{p}"' for p in exclude_patterns)
-    excludes += ' --exclude=.git --exclude=patches'
-    excludes += ' --exclude=generated --exclude=config'
-    # Recipe-supplied extra excludes — space-separated directory/file
-    # basenames (glob), matched by `diff --exclude` at any depth. Used for
-    # things that vary per recipe and would otherwise flood the patchset,
-    # most notably an out-of-tree build directory (e.g. QEMU's meson/ninja
-    # `build/`, which holds 1000+ generated files). A blanket exclude in
-    # this shared class would be unsafe (another recipe might ship real
-    # source under such a name), so each recipe opts in via IB_UPDIFF_EXCLUDE.
-    #
-    # An entry holding a '/' is a path from the tree root instead (fnmatch
-    # pattern), for a generated file whose basename a real source shares:
-    # U-Boot's include/config.h against arch/*/include/asm/config.h. A
-    # leading '/' names a file at the root itself.
+    # patches/ is the quilt staging of do_attach_infrabase, generated/ and
+    # config/ the kbuild-generated trees. A recipe adds its own through
+    # IB_UPDIFF_EXCLUDE: an entry with a '/' is a path from the tree root (a
+    # leading '/' names a file at the root), any other a name at any depth.
+
+    names = exclude_patterns + ['.git', '.pc', 'patches', 'generated', 'config']
     path_excludes = []
     for x in (d.getVar('IB_UPDIFF_EXCLUDE') or '').split():
         if '/' in x:
             path_excludes.append(x.lstrip('/'))
         else:
-            excludes += f' --exclude={shlex.quote(x)}'
-    statement = (
-        f'diff -Nrq {excludes} --no-dereference '
-        f'{shlex.quote(source_dir)} . > {shlex.quote(diff_files_tmp)}'
-    )
-    subprocess.call(statement, shell=True, cwd=target_dir)
+            names.append(x)
+    hidden = re.compile('|'.join(fnmatch.translate(p) for p in names))
 
-    new_number = 1
-    src_norm = source_dir.rstrip('/') + '/'
+    hashes = ib_attach_hashes(target_dir)
+    if hashes is None:
+        bb.warn(f"do_diffcompose: no attach manifest for {target_dir}, "
+                "comparing the whole tree to pristine")
 
-    with open(diff_files_tmp, "r") as diff_file:
-        for raw_line in diff_file:
-            line = raw_line.rstrip('\n')
-            if not line:
-                continue
+    edited = []
+    for rel in ib_edited_files(target_dir, source_dir, hashes, hidden):
+        if any(fnmatch.fnmatch(rel, p) for p in path_excludes):
+            continue
 
-            src_path = None
-            tgt_path = None
-            rel = None
+        output_patch = os.path.join(output_dir, f"{len(edited) + 1:04d}-"
+                                                f"{os.path.basename(rel)}.patch")
+        cmd = ['diff', '--no-dereference', '-uN',
+               '--label', f'a/{rel}', '--label', f'b/{rel}',
+               os.path.join(source_dir, rel), os.path.join('.', rel)]
+        with open(output_patch, 'wb') as out:
+            subprocess.run(cmd, stdout=out, cwd=target_dir, check=False)
 
-            # Form 1: "Files <src> and <tgt> differ"
-            m = re.match(r'^Files (.+) and (.+) differ$', line)
-            if m:
-                src_path = m.group(1)
-                tgt_path = m.group(2)
-                if tgt_path.startswith('./'):
-                    rel = tgt_path[2:]
-                elif src_path.startswith(src_norm):
-                    rel = src_path[len(src_norm):]
-                else:
-                    bb.warn(f"do_diffcompose: cannot derive relative path for: {line}")
-                    continue
-            else:
-                # Form 2: "Only in <dir>: <name>"
-                m = re.match(r'^Only in (.+): (.+)$', line)
-                if not m:
-                    bb.warn(f"do_diffcompose: unrecognised diff -Nrq line: {line}")
-                    continue
-                only_dir = m.group(1)
-                only_name = m.group(2)
-                full = os.path.join(only_dir, only_name)
-                if only_dir == source_dir or only_dir.startswith(src_norm):
-                    # Present only in source -> file deleted in target.
-                    src_path = full
-                    rel = os.path.relpath(full, source_dir)
-                    tgt_path = os.path.join('.', rel)
-                else:
-                    # only_dir is relative to cwd=target_dir; file added locally.
-                    tgt_path = full
-                    rel = os.path.relpath(full, '.')
-                    src_path = os.path.join(source_dir, rel)
+        # A binary file would make do_patch fail with "Only garbage was found
+        # in the patch input".
 
-            if any(fnmatch.fnmatch(rel, p) for p in path_excludes):
-                continue
+        with open(output_patch, 'rb') as f:
+            binary = f.readline().startswith(b'Binary files ')
+        if binary:
+            bb.note(f"do_diffcompose: skipping binary file: {rel}")
+            os.remove(output_patch)
+            continue
 
-            filename = os.path.basename(rel)
-            output_patch = os.path.join(output_dir, f"{new_number:04d}-{filename}.patch")
+        edited.append(rel)
 
-            # Per-file unified diff with git-style a/<rel> b/<rel> labels so
-            # the patch applies cleanly with `patch -p1` regardless of the
-            # checkout location.
-            cmd = [
-                'diff', '--no-dereference', '-uN',
-                '--label', f'a/{rel}',
-                '--label', f'b/{rel}',
-                src_path, tgt_path,
-            ]
-            with open(output_patch, 'wb') as out:
-                subprocess.run(cmd, stdout=out, cwd=target_dir, check=False)
-
-            # `diff -uN` emits "Binary files <a> and <b> differ" instead of
-            # a usable hunk when either side is binary. Writing that as a
-            # .patch file makes do_patch fail later with "Only garbage was
-            # found in the patch input". These are typically build
-            # artefacts (e.g. compiled scripts/kconfig/conf) that leaked
-            # into IB_TARGET; just drop the patch and move on.
-            with open(output_patch, 'rb') as f:
-                first = f.readline()
-            if first.startswith(b'Binary files '):
-                bb.note(f"do_diffcompose: skipping binary file: {rel}")
-                os.remove(output_patch)
-                continue
-
-            new_number += 1
-
-    os.remove(diff_files_tmp)
+    with open(os.path.join(output_dir, '.edited'), 'w',
+              errors='surrogateescape') as f:
+        f.writelines(rel + '\n' for rel in edited)
 }
 
 def generate_src_uri(patch_directory, header=None):
@@ -423,6 +349,7 @@ def generate_src_uri(patch_directory, header=None):
                      if p.endswith(".patch"))
     # Keep the existing .inc's leading comment block (its copyright and any
     # notes), so repeated updiff runs don't churn it; standard one otherwise.
+
     src_uri = header or "# Copyright (c) 2025-2026 EDGEMTech SA\n\n"
     src_uri += "SRC_URI += \"\\ \n"
     for patch in patches:
@@ -477,12 +404,95 @@ def index_patchset(directory):
             idx.setdefault(pid, []).append(fname)
     return idx
 
+def ib_sha256(path):
+    """Hex SHA-256 of the file at `path`."""
+    import hashlib
+
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+
+    return h.hexdigest()
+
+def ib_attach_hashes(target):
+    """{rel: sha256} recorded by the last attach of `target`, None without a
+    manifest. Lines escaped by sha256sum (a name with a newline or a backslash)
+    are left out."""
+    manifest = target + '.attach.sha256'
+    if not os.path.isfile(manifest):
+        return None
+
+    hashes = {}
+    with open(manifest, 'r', errors='surrogateescape') as f:
+        for line in f:
+            if line[:1] != '\\' and line[64:68] == '  ./':
+                hashes[line[68:].rstrip('\n')] = line[:64]
+
+    return hashes
+
+def ib_neighbour_hashes(target):
+    """{rel: sha256}, relative to `target`, of what the recipes sharing it
+    attached: so3 and usr-so3 both write so3/usr, from either side."""
+    import glob
+
+    suffix = '.attach.sha256'
+    hashes = {}
+    for manifest in glob.glob(glob.escape(target) + '/*' + suffix):
+        name = os.path.basename(manifest)[:-len(suffix)]
+        nested = ib_attach_hashes(os.path.join(target, name)) or {}
+        hashes.update({os.path.join(name, rel): h for rel, h in nested.items()})
+
+    parent, name = os.path.split(os.path.normpath(target))
+    prefix = name + '/'
+    for rel, h in (ib_attach_hashes(parent) or {}).items():
+        if rel.startswith(prefix):
+            hashes[rel[len(prefix):]] = h
+
+    return hashes
+
+def ib_edited_files(target, pristine, hashes, hidden):
+    """Paths edited in `target`, created and deleted ones included, compared
+    to the `hashes` of the attach, or to `pristine` when `hashes` is None. A
+    file or directory whose name matches the regex `hidden` is skipped, and so
+    are symlinks, which a patch cannot carry. A file as a neighbouring recipe
+    attached it is that recipe's, not an edit."""
+    import filecmp
+
+    neighbours = ib_neighbour_hashes(target)
+    edited = []
+    for root, dirs, files in os.walk(target):
+        dirs[:] = [x for x in dirs if not hidden.match(x)]
+
+        for name in files:
+            path = os.path.join(root, name)
+            if hidden.match(name) or os.path.islink(path):
+                continue
+
+            rel = os.path.relpath(path, target)
+            if hashes is not None:
+                changed = rel not in hashes or ib_sha256(path) != hashes[rel]
+            else:
+                src = os.path.join(pristine, rel)
+                changed = not os.path.isfile(src) \
+                    or not filecmp.cmp(src, path, shallow=False)
+            if changed and neighbours.get(rel) != ib_sha256(path):
+                edited.append(rel)
+
+    known = hashes
+    if known is None:
+        known = [os.path.relpath(os.path.join(root, name), pristine)
+                 for root, _, files in os.walk(pristine) for name in files]
+    edited += [rel for rel in known
+               if not os.path.lexists(os.path.join(target, rel))
+               and not any(hidden.match(p) for p in rel.split('/'))]
+
+    return edited
+
 def ib_refresh_attach_manifest(d, rels):
     """Rewrite the ${IB_TARGET}.attach.sha256 entries for the given
     relative paths with the files' current hashes: added when the file is
     new, dropped when it is gone. Other entries are kept as they are."""
-    import hashlib
-
     target = d.getVar('IB_TARGET')
     manifest = target + '.attach.sha256'
     if not os.path.isfile(manifest):
@@ -490,6 +500,7 @@ def ib_refresh_attach_manifest(d, rels):
 
     # sha256sum lines are "<hash>  ./<rel>". A line it escaped (leading
     # backslash, for a name with a newline or backslash) is kept verbatim.
+
     entries = {}
     with open(manifest, 'r', errors='surrogateescape') as f:
         for line in f:
@@ -503,11 +514,7 @@ def ib_refresh_attach_manifest(d, rels):
         key = './' + rel
         path = os.path.join(target, rel)
         if os.path.isfile(path) and not os.path.islink(path):
-            h = hashlib.sha256()
-            with open(path, 'rb') as f:
-                for chunk in iter(lambda: f.read(1 << 20), b''):
-                    h.update(chunk)
-            entries[key] = h.hexdigest()
+            entries[key] = ib_sha256(path)
         else:
             entries.pop(key, None)
 
@@ -519,41 +526,21 @@ def ib_refresh_attach_manifest(d, rels):
 addtask do_updiff
 do_updiff[nostamp] = "1"
 
-# Merge the staged patches produced by do_diffcompose
-# (${IB_PATCHSET_DIR}/${PF}/, one "pristine → IB_TARGET" diff per file) back
-# into the patch series the recipe actually applies.
+# Fold the files staged by do_diffcompose into the patch series do_patch applies
+# (src_patches(), so the bbappend patchsets are seen too). Given the patches of
+# the series touching an edited file, its chain:
 #
-# The series is read from SRC_URI (src_patches(), the very list do_patch
-# applies, in order), so EVERY patchset is seen: the recipe's own files/ and
-# those a bbappend brings from another directory (the course's vext layers).
-# Looking at the recipe's own files/ alone made updiff blind to the bbappend
-# patches: it re-appended their content to the base set, and do_patch then
-# applied it twice.
+#   * KEEP: the chain already yields the file, nothing to write.
+#   * REFUSE: the chain no longer yields what was attached, so the series moved
+#     behind the tree and rewriting it would revert that change.
+#   * FOLD: the tail of the chain lying in one patchset (see ib_fold_run) becomes
+#     one fresh section on top of what the earlier patches leave. A patch losing
+#     its last section is deleted, and the file reverting to that state only
+#     removes the tail.
+#   * APPEND: no patch touches the file: a new patch goes to the last patchset of
+#     the series with a plain .inc, or to ${IB_PATCHSET_DIR}/0001-${PF}/.
 #
-# Each patch is split into per-file sections and indexed by target path
-# (header path with the patch's striplevel removed, exactly as `patch -pN`
-# does — so "./arch/x" and "b/arch/x" are the same file). For each staged
-# file, given the CHAIN of series patches that touch it:
-#
-#   * KEEP — the chain already turns pristine into IB_TARGET's content
-#     (checked by applying it on a scratch copy). Nothing is rewritten, so a
-#     patch generated by another tool does not churn into an equivalent one.
-#   * REWRITE — otherwise the LAST patch of the chain gets a fresh section
-#     for this file, diffed against the state the earlier patches leave
-#     (pristine + chain[:-1]). The earlier patches are untouched and nothing
-#     is applied twice. A one-patch chain is the old "consolidate"; longer
-#     chains (two patchsets on one file, or append-only history) used to be
-#     refused. Other sections of a multi-file patch are kept as they are.
-#   * APPEND — no patch touches the file yet: the staged diff becomes a new
-#     patch at the end of the last patchset of the series whose .inc is a
-#     plain generated one (the course's, for a vext bbappend), or of
-#     ${IB_PATCHSET_DIR}/0001-${PF}/ when there is none.
-#
-# Nothing is written unless every file was resolved: if a chain no longer
-# applies, updiff stops with the file named and the patchsets untouched.
-# Patches whose file is not staged (unchanged since pristine, or excluded)
-# are kept as they are. The .inc of a patchset is regenerated only when a
-# patch was appended to it.
+# Nothing is written unless every file was resolved.
 
 def ib_patch_split(path):
     """Split a patch file into (preamble, [(src, dst, text), ...]), one entry
@@ -662,9 +649,59 @@ def ib_inc_is_plain(inc_path):
 def ib_inc_for(setdir):
     return setdir.rstrip('/') + '-patches.inc'
 
-python do_updiff() {
-    import os
+def ib_set_is_plain(setdir, pf):
+    """True for a numbered patchset of `pf` whose .inc is a generated one."""
     import re
+
+    return bool(re.match(r'^\d{4}-' + re.escape(pf) + r'$',
+                         os.path.basename(setdir))) \
+        and ib_inc_is_plain(ib_inc_for(setdir))
+
+def ib_patch_has_text(preamble):
+    """True when a patch's preamble holds a description, not just the headers
+    `diff` or git print."""
+    import re
+
+    return any(not re.match(r'^(diff |index |new file|deleted file|Index: |=+$|$)',
+                            line)
+               for line in preamble.splitlines())
+
+def ib_foldable(entry, pf):
+    """True when updiff may rewrite or delete this patch. Patchsets stay apart
+    through their .inc, and a description is someone's work to keep."""
+    return entry['strip'] == 1 and not ib_patch_has_text(entry['preamble']) \
+        and ib_set_is_plain(os.path.dirname(entry['path']), pf)
+
+def ib_fold_run(chain, pf):
+    """The tail of `chain` to merge: its last link, plus the links before it
+    in the same patchset. A base recipe and a bbappend are never merged."""
+    last = chain[-1]
+    if not ib_foldable(last[0], pf):
+        return [last]
+
+    setdir = os.path.dirname(last[0]['path'])
+    run = [last]
+    for link in reversed(chain[:-1]):
+        if os.path.dirname(link[0]['path']) != setdir \
+                or not ib_foldable(link[0], pf):
+            break
+        run.insert(0, link)
+
+    return run
+
+def ib_inc_drop(path):
+    """Remove the deleted patch `path` from its patchset's .inc."""
+    inc_path = ib_inc_for(os.path.dirname(path))
+    uri = 'file://' + os.path.basename(path)
+
+    with open(inc_path) as f:
+        lines = [l for l in f if l.split(';')[0].split()[:1] != [uri]]
+    with open(inc_path, 'w') as f:
+        f.writelines(lines)
+
+python do_updiff() {
+    import hashlib
+    import os
     import shutil
     import subprocess
     import tempfile
@@ -678,8 +715,29 @@ python do_updiff() {
         bb.fatal(f"do_updiff: staging directory {staging} not found "
                  "(run do_diffcompose first?)")
 
+    def fail(msg):
+        """Stop on `msg`, leaving the patch sets as they were."""
+        shutil.rmtree(staging, ignore_errors=True)
+        bb.fatal(f"do_updiff: {msg} Nothing was written.")
+
     series, index = ib_patch_series(d)
     staged = index_patchset(staging)
+    hashes = ib_attach_hashes(target)
+
+    with open(os.path.join(staging, '.edited'), errors='surrogateescape') as f:
+        edited = sorted(line.rstrip('\n') for line in f)
+
+    # A patch that built the tree but left the series makes an edited file look
+    # unpatched: all it brought would be appended with the edit.
+
+    attached = ib_attached_series(d)
+    gone = (attached or set()) - ib_series_names(d)
+    if gone and edited:
+        fail(f"{target} was built with patches no longer in the series "
+             f"({', '.join(sorted(gone)[:5])}): an override probably changed "
+             "since the build. Restore it to fold your edits, or run "
+             f"'./scripts/build.sh -c {d.getVar('PN')}' to rebuild the tree "
+             "from the current series.")
 
     # A real edit adds a handful of files. Dozens of new ones is a built tree
     # seen through an incomplete exclude list: refuse before writing anything.
@@ -687,26 +745,25 @@ python do_updiff() {
     limit = int(d.getVar('IB_UPDIFF_MAX_NEW') or 20)
     new = sorted(rel for rel in staged if rel not in index)
     if len(new) > limit:
-        shutil.rmtree(staging)
-        bb.fatal(f"do_updiff: {len(new)} files in {target} have no patch yet "
-                 f"(limit {limit}), e.g. {', '.join(new[:5])}. That is build "
-                 "output taken for source: name it in IB_UPDIFF_EXCLUDE, or "
-                 "raise IB_UPDIFF_MAX_NEW if the count is right. Nothing was "
-                 "written.")
+        fail(f"{len(new)} files in {target} have no patch yet (limit {limit}), "
+             f"e.g. {', '.join(new[:5])}. That is build output taken for "
+             "source: name it in IB_UPDIFF_EXCLUDE, or raise IB_UPDIFF_MAX_NEW "
+             "if the count is right.")
 
     # Where new patches go: the last patchset of the series with a plain
     # .inc, else the recipe's own 0001-${PF}/ (created on first use).
+
     append_dir = None
     for entry in reversed(series):
         setdir = os.path.dirname(entry['path'])
-        if re.match(r'^\d{4}-' + re.escape(pf) + r'$', os.path.basename(setdir)) \
-                and ib_inc_is_plain(ib_inc_for(setdir)):
+        if ib_set_is_plain(setdir, pf):
             append_dir = setdir
             break
     if append_dir is None:
         append_dir = os.path.join(d.getVar('IB_PATCHSET_DIR'), f"0001-{pf}")
 
     def final_of(rel):
+        """Content of `rel` in the tree, None if it is gone."""
         path = os.path.join(target, rel)
         if os.path.isfile(path) and not os.path.islink(path):
             with open(path, 'rb') as f:
@@ -714,69 +771,88 @@ python do_updiff() {
         return None
 
     # First pass: decide everything, write nothing.
+
     kept, rewritten, rewrites, appends = [], [], {}, []
     tmpdir = tempfile.mkdtemp(prefix='updiff-', dir=d.getVar('TMPDIR'))
     try:
-        for rel, snames in sorted(staged.items()):
+        for rel in edited:
             chain = index.get(rel, [])
             if not chain:
-                appends.append((rel, os.path.join(staging, snames[0])))
+                if rel in staged:
+                    appends.append((rel, os.path.join(staging, staged[rel][0])))
                 continue
 
             final = final_of(rel)
+            run = ib_fold_run(chain, pf)
             try:
-                if ib_apply_chain(rel, chain, pristine, tmpdir) == final:
+                replay = ib_apply_chain(rel, chain, pristine, tmpdir)
+                if replay == final:
                     kept.append(rel)
                     continue
-                base = ib_apply_chain(rel, chain[:-1], pristine, tmpdir)
+
+                digest = None if replay is None \
+                    else hashlib.sha256(replay).hexdigest()
+                if hashes is not None and digest != hashes.get(rel):
+                    fail(f"{rel} was edited and its patches changed since the "
+                         "attach. Save the edit, re-attach with "
+                         "IB_FORCE_ATTACH=1, then redo it.")
+
+                base = ib_apply_chain(rel, chain[:-len(run)], pristine, tmpdir)
             except RuntimeError as e:
-                shutil.rmtree(tmpdir, ignore_errors=True)
-                bb.fatal(f"do_updiff: {rel}: the series no longer applies "
-                         f"({e}). Nothing was written.")
+                fail(f"{rel}: the series no longer applies ({e}).")
 
+            head, section = run[0]
             if base == final:
-                shutil.rmtree(tmpdir, ignore_errors=True)
-                bb.fatal(f"do_updiff: {rel} is back to its state before "
-                         f"{os.path.basename(chain[-1][0]['path'])}: that "
-                         "patch would become empty. Remove its section by "
-                         "hand (and the patch from its .inc if it was the only "
-                         "one). Nothing was written.")
+                if not ib_foldable(chain[-1][0], pf):
+                    fail(f"{rel} is back to its state before "
+                         f"{os.path.basename(chain[-1][0]['path'])}: that patch "
+                         "would become empty. Remove its section by hand (and "
+                         "the patch from its .inc if it was the only one).")
+                text = ''
+            else:
+                if head['strip'] != 1:
+                    bb.warn(f"do_updiff: {rel}: {os.path.basename(head['path'])} "
+                            f"uses striplevel={head['strip']}, skipped")
+                    continue
 
-            a = os.path.join(tmpdir, 'a')
-            b = os.path.join(tmpdir, 'b')
-            for path, content in ((a, base), (b, final)):
-                if content is None:
-                    if os.path.exists(path):
-                        os.remove(path)
-                else:
-                    with open(path, 'wb') as f:
-                        f.write(content)
-            r = subprocess.run(['diff', '-uN', '--label', f'a/{rel}',
-                                '--label', f'b/{rel}', a, b],
-                               capture_output=True, text=True,
-                               errors='surrogateescape')
-            if r.stdout.startswith('Binary files '):
-                bb.warn(f"do_updiff: {rel} is binary, skipped")
-                continue
+                a = os.path.join(tmpdir, 'a')
+                b = os.path.join(tmpdir, 'b')
+                for path, content in ((a, base), (b, final)):
+                    if content is None:
+                        if os.path.exists(path):
+                            os.remove(path)
+                    else:
+                        with open(path, 'wb') as f:
+                            f.write(content)
+                r = subprocess.run(['diff', '-uN', '--label', f'a/{rel}',
+                                    '--label', f'b/{rel}', a, b],
+                                   capture_output=True, text=True,
+                                   errors='surrogateescape')
+                if r.stdout.startswith('Binary files '):
+                    bb.warn(f"do_updiff: {rel} is binary, skipped")
+                    continue
+                text = r.stdout
 
-            # Rewritten sections must apply with the patch's own striplevel;
-            # do_diffcompose labels are a/<rel> b/<rel>, i.e. -p1.
-            entry, n = chain[-1]
-            if entry['strip'] != 1:
-                bb.warn(f"do_updiff: {rel}: {os.path.basename(entry['path'])} "
-                        f"uses striplevel={entry['strip']}, skipped")
-                continue
-            rewrites.setdefault(entry['path'], (entry, {}))[1][n] = r.stdout
+            rewrites.setdefault(head['path'], (head, {}))[1][section] = text
+            for entry, n in run[1:]:
+                rewrites.setdefault(entry['path'], (entry, {}))[1][n] = ''
             rewritten.append(rel)
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
     # Second pass: write.
+
+    removed, added = [], set()
     for path, (entry, new) in rewrites.items():
+        sections = [new.get(n, s[2]) for n, s in enumerate(entry['sections'])]
+        if not any(sections) and not ib_patch_has_text(entry['preamble']):
+            os.remove(path)
+            ib_inc_drop(path)
+            removed.append(path)
+            continue
+
         with open(path, 'w', errors='surrogateescape') as f:
-            f.write(entry['preamble'])
-            for n, (_, _, text) in enumerate(entry['sections']):
-                f.write(new.get(n, text))
+            f.write(entry['preamble'] + ''.join(sections))
 
     if appends:
         os.makedirs(append_dir, exist_ok=True)
@@ -786,7 +862,16 @@ python do_updiff() {
         for rel, spath in appends:
             name = f"{next_number:04d}-{os.path.basename(rel)}.patch"
             shutil.copyfile(spath, os.path.join(append_dir, name))
+            added.add(name)
             next_number += 1
+
+        # A set the recipe does not require yet applies nothing, so what it
+        # holds did not join the series.
+
+        if append_dir not in {os.path.dirname(e['path']) for e in series}:
+            added.clear()
+            bb.warn(f"do_updiff: {ib_inc_for(append_dir)} is not used yet: "
+                    "require it from the recipe")
 
         inc_path = ib_inc_for(append_dir)
         header = None
@@ -802,17 +887,25 @@ python do_updiff() {
         with open(inc_path, 'w') as f:
             f.write(generate_src_uri(append_dir, header))
 
-    # The series now yields IB_TARGET's content for every file handled, so
-    # move those files' attach-manifest entries to it (see base.bbclass: the
-    # dirty-tree guards would otherwise keep flagging what was just captured).
+    if attached is not None:
+        ib_record_attached_series(d, (attached | added)
+                                  - {os.path.basename(p) for p in removed})
+
+    # The series now yields these files, so the dirty-tree guards of
+    # base.bbclass must stop flagging them.
+
     ib_refresh_attach_manifest(d, kept + rewritten + [rel for rel, _ in appends])
 
     shutil.rmtree(staging)
 
+    if not edited:
+        bb.plain("do_updiff: nothing edited since the attach")
+        return
+
     sets = sorted({os.path.relpath(os.path.dirname(path), d.getVar('IB_DIR'))
                    for path in rewrites})
     bb.plain(f"do_updiff: {len(kept)} unchanged, {len(rewritten)} rewritten, "
-             f"{len(appends)} appended"
+             f"{len(removed)} merged away, {len(appends)} appended"
              + (f" (into {os.path.relpath(append_dir, d.getVar('IB_DIR'))})"
                 if appends else "")
              + (f"; patchsets touched: {', '.join(sets)}" if sets else ""))

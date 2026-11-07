@@ -1,5 +1,4 @@
 LVGL_URI:append = "\ 
-    file://0001-CMakeLists.txt.patch \ 
     file://0063-CMakeLists.txt.patch \ 
     file://0008-CMakeLists.txt.patch \ 
     file://0005-LICENSE.patch \ 

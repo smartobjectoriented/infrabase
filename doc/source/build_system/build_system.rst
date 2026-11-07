@@ -259,9 +259,10 @@ clean, and a ``clean`` of a recipe drops the manifest on purpose.
 
 .. warning::
    
-   It has to be noted that the generated patches are issued from the difference between the local
-   files and the original **patched** files. This leads to an incremental patching process.
-   The *diff* process is always done against the directory which is stored in ``tmp/work/<component>/`` 
+   ``do_updiff`` only looks at what changed in the attached tree since ``do_attach_infrabase``, using
+   the manifest recorded there. The patches themselves are computed from ``${S}.pristine``, the
+   untouched upstream sources in ``tmp/work/<component>/``: the series is replayed on it, not read from
+   the patched ``${S}``.
 
 
 Building a patchset
@@ -280,9 +281,17 @@ As result, the patchset is generated in ``build/meta-linux/recipes-linux/linux/f
 the file ``000x-linux-5.10-r0-patches.inc`` and its associated directory called ``000x-linux-5.10-r0``
 in which the set of patches is located.
 
-The prefix is made of four digits and is incremented at each patchset generation.
+The patchset is folded in place, not extended with a patch of the patch. For each edited file:
 
-Based on these two elements, the patchset can be manually worked out.
+* The patches touching it at the end of the series, within one patchset, become a single patch: the
+  first of them is rewritten, the others lose their section, and a patch left empty is deleted along
+  with its line in the ``.inc``. A patch carrying a description is left out of this merge.
+* A patch of another patchset is never merged, so a bbappend's series stays apart from its base recipe.
+* A file no patch touches gets a new patch at the end of the last generated patchset of the series.
+* If the patches of an edited file changed since the attach, for example after a ``git pull``,
+  ``do_updiff`` stops without writing anything, as rewriting them would revert that change.
+
+Files that were not edited are never looked at.
 
 To include a patchset in a recipe, the recipe file has to include the following lines:
 
@@ -298,7 +307,7 @@ the first patchset should be called with prefix ``0001-``
 Excluding generated files
 =========================
 
-``do_updiff`` diffs the whole attached tree, so anything *generated* in it would end up in the patchset.
+``do_updiff`` walks the whole attached tree, so anything *generated* in it would read as a new file.
 The shared exclusions (``.git``, ``patches``, the kbuild leftovers, …) live in the ``patch`` class, and a
 recipe adds its own with ``IB_UPDIFF_EXCLUDE`` — a space-separated list of file or directory names matched
 at any depth. The QEMU recipe is the clearest case:

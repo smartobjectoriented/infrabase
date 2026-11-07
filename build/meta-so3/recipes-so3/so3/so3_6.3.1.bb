@@ -21,6 +21,11 @@ OVERRIDES:append = ":so3"
 
 IB_TARGET = "${IB_SO3_PATH}"
 
+# The build leaves its arch marker, the usr-so3 CMake directory and the rendered
+# ITS/ITB in this tree. Upstream SO3 has no directory of either name.
+
+IB_UPDIFF_EXCLUDE = ".ib_last_arch build images"
+
 # Infrabase does not embed the SO3 sources. Same revision as the AVZ recipe:
 # both are the same kernel tree, and move together.
 
