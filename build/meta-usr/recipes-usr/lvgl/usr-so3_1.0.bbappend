@@ -111,7 +111,7 @@ python do_clean:append() {
 
     usr = None
     try:
-        with open(d.getVar('IB_SO3_PATH') + '.attach.pf') as f:
+        with open(os.path.dirname(target) + '.attach.pf') as f:
             pf = f.read().strip()
         usr = os.path.join(d.getVar('TMPDIR'), 'work', pf, pf.rsplit('-', 1)[0], 'usr')
     except OSError:
