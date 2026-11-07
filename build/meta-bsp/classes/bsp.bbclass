@@ -18,6 +18,7 @@ IB_OPTEE_PATH = "${IB_DIR}/atf/optee"
 # writes the resulting .itb here too.
 IB_ITB_PATH:linux = "${IB_DIR}/linux/images"
 IB_ITB_PATH:zephyr = "${IB_DIR}/zephyr/images"
+IB_ITB_PATH:so3 = "${IB_DIR}/so3/images"
 
 # Zephyr environment, laid out like the others: the tree at zephyr/zephyr,
 # the applications at zephyr/usr, the ITB at zephyr/images.
@@ -41,14 +42,15 @@ IB_ZEPHYR_BOOT_IMAGE ?= "${IB_ZEPHYR_USR_PATH}/build/${IB_ZEPHYR_BOOT_APP}/zephy
 
 # Component tree locations referenced from the ITS templates. Provided here
 # (?=) so every BSP recipe can render any ITS regardless of which classes it
-# inherits; the real definitions in avz/linux .bbclass take precedence.
+# inherits; the real definitions in so3/avz/linux .bbclass take precedence.
+IB_SO3_PATH ?= "${IB_DIR}/so3"
 IB_AVZ_PATH ?= "${IB_DIR}/avz"
 IB_LINUX_PATH ?= "${IB_DIR}/linux/linux"
 
 # AVZ two-ITB boot: the guest ITB basename is <IB_TARGET_ITS without _avz> +
-# this suffix. Infrabase only ever boots a Linux guest, hence _linux_guest;
-# it stays a variable so a downstream tree can add another guest flavour
-# without touching this class.
+# this suffix: _linux_guest by default, _so3_guest in bsp-so3. It stays a
+# variable so a downstream tree can add another guest flavour without touching
+# this class.
 IB_GUEST_SUFFIX ?= "_linux_guest"
 
 # Which cpio feeds the embedded ramfs (the initrd.cpio.gz that the ITS
@@ -68,7 +70,8 @@ IB_RAMFS_SOURCE ?= "rootfs"
 # and only the replacement side is expanded.
 bsp_render_its() {
 	mkdir -p "${IB_ITB_PATH}"
-	sed -e "s|[$][{]IB_AVZ_PATH[}]|${IB_AVZ_PATH}|g" \
+	sed -e "s|[$][{]IB_SO3_PATH[}]|${IB_SO3_PATH}|g" \
+	    -e "s|[$][{]IB_AVZ_PATH[}]|${IB_AVZ_PATH}|g" \
 	    -e "s|[$][{]IB_LINUX_PATH[}]|${IB_LINUX_PATH}|g" \
 	    -e "s|[$][{]IB_ROOTFS_PATH[}]|${IB_ROOTFS_PATH}|g" \
 	    -e "s|[$][{]IB_ZEPHYR_IMAGE[}]|${IB_ZEPHYR_IMAGE}|g" \
@@ -92,6 +95,7 @@ def bsp_render_its_py(d, name):
     if not os.path.isfile(src):
         return False
     repl = {
+        '${IB_SO3_PATH}':    d.getVar('IB_SO3_PATH') or '',
         '${IB_AVZ_PATH}':    d.getVar('IB_AVZ_PATH') or '',
         '${IB_LINUX_PATH}':  d.getVar('IB_LINUX_PATH') or '',
         '${IB_ROOTFS_PATH}': d.getVar('IB_ROOTFS_PATH') or '',

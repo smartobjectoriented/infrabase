@@ -194,7 +194,7 @@ localconf_get()
 maybe_bootstrap_qemu()
 {
 	case "$1" in
-		bsp-linux) ;;
+		bsp-so3|bsp-linux) ;;
 		*) return 0 ;;
 	esac
 
