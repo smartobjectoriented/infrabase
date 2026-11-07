@@ -1,6 +1,6 @@
 --- a/include/hw/arm/virt.h
 +++ b/include/hw/arm/virt.h
-@@ -58,6 +58,11 @@
+@@ -58,6 +58,13 @@
      VIRT_GIC_VCPU,
      VIRT_GIC_ITS,
      VIRT_GIC_REDIST,
@@ -8,11 +8,13 @@
 +	VIRT_CLCD,
 +	VIRT_KMI0,
 +	VIRT_KMI1,
++	VIRT_ABSMOUSE,
++	VIRT_ETH,
 +
      VIRT_SMMU,
      VIRT_UART,
      VIRT_MMIO,
-@@ -148,6 +153,17 @@
+@@ -148,6 +155,17 @@
      bool tcg_its;
      bool virt;
      bool ras;
