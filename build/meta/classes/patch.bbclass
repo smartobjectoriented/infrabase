@@ -701,6 +701,18 @@ python do_updiff() {
     with open(os.path.join(staging, '.edited'), errors='surrogateescape') as f:
         edited = sorted(line.rstrip('\n') for line in f)
 
+    # A patch that built the tree but left the series makes an edited file look
+    # unpatched: all it brought would be appended with the edit.
+
+    attached = ib_attached_series(d)
+    gone = (attached or set()) - ib_series_names(d)
+    if gone and edited:
+        fail(f"{target} was built with patches no longer in the series "
+             f"({', '.join(sorted(gone)[:5])}): an override probably changed "
+             "since the build. Restore it to fold your edits, or run "
+             f"'./scripts/build.sh -c {d.getVar('PN')}' to rebuild the tree "
+             "from the current series.")
+
     # A real edit adds a handful of files. Dozens of new ones is a built tree
     # seen through an incomplete exclude list: refuse before writing anything.
 
@@ -801,7 +813,7 @@ python do_updiff() {
 
     # Second pass: write.
 
-    removed = []
+    removed, added = [], set()
     for path, (entry, new) in rewrites.items():
         sections = [new.get(n, s[2]) for n, s in enumerate(entry['sections'])]
         if not any(sections) and not ib_patch_has_text(entry['preamble']):
@@ -821,6 +833,7 @@ python do_updiff() {
         for rel, spath in appends:
             name = f"{next_number:04d}-{os.path.basename(rel)}.patch"
             shutil.copyfile(spath, os.path.join(append_dir, name))
+            added.add(name)
             next_number += 1
 
         inc_path = ib_inc_for(append_dir)
@@ -836,6 +849,10 @@ python do_updiff() {
             header = ''.join(lines) or None
         with open(inc_path, 'w') as f:
             f.write(generate_src_uri(append_dir, header))
+
+    if attached is not None:
+        ib_record_attached_series(d, (attached | added)
+                                  - {os.path.basename(p) for p in removed})
 
     # The series now yields these files, so the dirty-tree guards of
     # base.bbclass must stop flagging them.

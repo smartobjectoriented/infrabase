@@ -530,6 +530,36 @@ python ib_clean_guard() {
 }
 do_clean[prefuncs] += "ib_clean_guard"
 
+# The patches SRC_URI applies depend on the overrides, and the stamps do not:
+# changing an override leaves the tree as it was built. The series that built
+# the tree is therefore recorded in ${IB_TARGET}.attach.series for do_updiff.
+
+def ib_series_names(d):
+    names = set()
+    for uri in (d.getVar('SRC_URI') or '').split():
+        if uri.startswith('file://'):
+            name = os.path.basename(uri[len('file://'):].split(';')[0])
+            if name.endswith(('.patch', '.diff')):
+                names.add(name)
+    return names
+
+def ib_attached_series(d):
+    try:
+        with open(d.getVar('IB_TARGET') + '.attach.series') as f:
+            return set(f.read().split())
+    except OSError:
+        return None
+
+def ib_record_attached_series(d, names):
+    with open(d.getVar('IB_TARGET') + '.attach.series', 'w') as f:
+        f.writelines(n + '\n' for n in sorted(names))
+
+python ib_attach_series() {
+    if d.getVar('IB_TARGET'):
+        ib_record_attached_series(d, ib_series_names(d))
+}
+do_attach_infrabase[postfuncs] += "ib_attach_series"
+
 do_attach_infrabase () {
 	ib_manifest="${IB_TARGET}.attach.sha256"
 

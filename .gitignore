@@ -54,6 +54,7 @@ build/cache
 # attached component tree, so the next attach can refuse to clobber local edits.
 *.attach.sha256
 *.attach.pf
+*.attach.series
 
 **/doxy/**
 **/generated/**
