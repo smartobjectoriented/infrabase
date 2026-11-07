@@ -429,13 +429,35 @@ def ib_attach_hashes(target):
 
     return hashes
 
+def ib_neighbour_hashes(target):
+    """{rel: sha256}, relative to `target`, of what the recipes sharing it
+    attached: so3 and usr-so3 both write so3/usr, from either side."""
+    import glob
+
+    suffix = '.attach.sha256'
+    hashes = {}
+    for manifest in glob.glob(glob.escape(target) + '/*' + suffix):
+        name = os.path.basename(manifest)[:-len(suffix)]
+        nested = ib_attach_hashes(os.path.join(target, name)) or {}
+        hashes.update({os.path.join(name, rel): h for rel, h in nested.items()})
+
+    parent, name = os.path.split(os.path.normpath(target))
+    prefix = name + '/'
+    for rel, h in (ib_attach_hashes(parent) or {}).items():
+        if rel.startswith(prefix):
+            hashes[rel[len(prefix):]] = h
+
+    return hashes
+
 def ib_edited_files(target, pristine, hashes, hidden):
     """Paths edited in `target`, created and deleted ones included, compared
     to the `hashes` of the attach, or to `pristine` when `hashes` is None. A
     file or directory whose name matches the regex `hidden` is skipped, and so
-    are symlinks, which a patch cannot carry."""
+    are symlinks, which a patch cannot carry. A file as a neighbouring recipe
+    attached it is that recipe's, not an edit."""
     import filecmp
 
+    neighbours = ib_neighbour_hashes(target)
     edited = []
     for root, dirs, files in os.walk(target):
         dirs[:] = [x for x in dirs if not hidden.match(x)]
@@ -452,7 +474,7 @@ def ib_edited_files(target, pristine, hashes, hidden):
                 src = os.path.join(pristine, rel)
                 changed = not os.path.isfile(src) \
                     or not filecmp.cmp(src, path, shallow=False)
-            if changed:
+            if changed and neighbours.get(rel) != ib_sha256(path):
                 edited.append(rel)
 
     known = hashes
@@ -835,6 +857,14 @@ python do_updiff() {
             shutil.copyfile(spath, os.path.join(append_dir, name))
             added.add(name)
             next_number += 1
+
+        # A set the recipe does not require yet applies nothing, so what it
+        # holds did not join the series.
+
+        if append_dir not in {os.path.dirname(e['path']) for e in series}:
+            added.clear()
+            bb.warn(f"do_updiff: {ib_inc_for(append_dir)} is not used yet: "
+                    "require it from the recipe")
 
         inc_path = ib_inc_for(append_dir)
         header = None
