@@ -1,4 +1,46 @@
 
+v1.1.0 (13 nov 2026)
+
+Minor release, the first of the release/v1.1 line: Infrabase builds SO3
+again, updiff only folds what was really edited, and the deploy and
+platform-switch paths are fixed.
+
+	•	SO3 recipes. Infrabase builds SO3 as well as Linux: the kernel,
+		usr-so3, its musl 1.2.6 toolchain and bsp-so3, standalone or as an
+		AVZ guest, on virt64 and virt32. QEMU's virt machine carries the
+		so3 devices (absolute pointer, LAN9118) and st.sh passes a LAN9118
+		NIC, which a Linux guest ignores. U-Boot now takes virt64_defconfig
+		on every virt64 chain, the bare Linux one included. (#68)
+
+	•	updiff detects edits from the attach manifest instead of diffing
+		every patched file against pristine: after a git pull bringing new
+		patches, an updiff about an unrelated file no longer reverts them.
+		Successive patches of one edited file are merged, an emptied patch
+		goes away, and updiff refuses to write when the series changed
+		under the tree. It folds edits into every series a recipe applies,
+		caps the number of new files (IB_UPDIFF_MAX_NEW) and refuses BSP
+		recipes. (#64/#66, #67, #70)
+
+	•	Platform switch: buildroot reconfigures, and drops its previous
+		output, when IB_PLATFORM or its defconfig changes, and the user
+		space CMake cache is wiped on an architecture change. Switching
+		virt64 to virt32 used to fail on a missing rootfs.cpio. (#61)
+
+	•	Deploy: the rootfs partition is emptied before the rootfs goes onto
+		it, so files the build no longer produces do not survive (#65); the
+		user space is copied without imposing the builder's ownership on
+		/, /etc, /usr and /root (#52); only the storage image's loop
+		devices are detached (#66).
+
+	•	Build: avz refetches when its SRCREV or patch set changes, the
+		buildroot make is skipped while nothing changed, 32-bit kernels
+		build with ARCH=arm, and linux/rootfs/images/initrd.cpio points to
+		the board's tracked initrd (#63, #66).
+
+	•	The tezi-custom sources needed by recovery-edgem.sh are committed
+		(#69), and the documentation shows the release under the sidebar
+		title (#62).
+
 v1.0.1 (2 oct 2026)
 
 Patch release on the release/v1.0 line: four fixes to v1.0.0.

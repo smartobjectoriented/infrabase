@@ -126,7 +126,8 @@ land there and are tagged as patch releases.
 
 | Line | Branch | Latest release | Status |
 |------|--------|----------------|--------|
-| 1.0  | [`release/v1.0`](https://github.com/smartobjectoriented/infrabase/tree/release/v1.0) | [v1.0.1](https://github.com/smartobjectoriented/infrabase/releases/tag/v1.0.1) | Current stable |
+| 1.1  | [`release/v1.1`](https://github.com/smartobjectoriented/infrabase/tree/release/v1.1) | [v1.1.0](https://github.com/smartobjectoriented/infrabase/releases/tag/v1.1.0) | Current stable |
+| 1.0  | [`release/v1.0`](https://github.com/smartobjectoriented/infrabase/tree/release/v1.0) | [v1.0.1](https://github.com/smartobjectoriented/infrabase/releases/tag/v1.0.1) | Maintenance |
 
 See all versions on the
 [Releases page](https://github.com/smartobjectoriented/infrabase/releases).
