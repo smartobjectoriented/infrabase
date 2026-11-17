@@ -194,8 +194,15 @@ def __do_platform_boot_chain(d):
         if os.path.exists(flash_path):
             os.remove(flash_path)
 
-        __write_boot_conf(d, fs_dir, chain, "virt,gic-version=2",
-                          "-kernel u-boot/u-boot")
+        machine = "virt,gic-version=2"
+        if hyp == "avz":
+            # AVZ is an EL2 hypervisor, so the machine has to expose EL2.
+            # Without it AVZ faults on its first EL2 system-register access,
+            # which surfaces as a synchronous abort and a reset.
+
+            machine += ",virtualization=on"
+
+        __write_boot_conf(d, fs_dir, chain, machine, "-kernel u-boot/u-boot")
         return
 
     # ATF chains: build flash0.img. "atf+uboot" and "atf+optee+uboot"
