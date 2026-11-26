@@ -99,6 +99,7 @@ modules.order
 # Build system generated directories
 u-boot
 /qemu
+/atf/
 /so3
 linux/linux
 rootfs/buildroot
