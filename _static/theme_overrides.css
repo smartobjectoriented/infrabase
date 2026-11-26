@@ -1,0 +1,35 @@
+/* -*- coding: utf-8; mode: css -*-
+ *
+ * Sphinx HTML theme customization: read the doc
+ *
+ */
+
+/* override table no-wrap */
+.wy-table-responsive table td, .wy-table-responsive table th {
+    white-space: normal;
+}
+
+.wy-nav-content {
+max-width: none;
+}
+
+.highlight {
+	max-height:300px;
+	overflow:auto;
+}
+
+.center h1,
+.center h2 {
+    text-align: center;
+}
+
+.left h1,
+.left h2 {
+	text-align: left;
+}
+.wy-side-nav-search > div.version {
+	margin-top: -0.4045em;
+	margin-bottom: 0.809em;
+	font-weight: normal;
+	color: hsla(0, 0%, 100%, 0.6);
+}
