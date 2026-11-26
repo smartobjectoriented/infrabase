@@ -36,6 +36,8 @@ build/cache
 # would make do_patch refuse to re-create them once committed).
 /filesystem/sdcard.img.*
 /filesystem/work
+/filesystem/p1/
+/filesystem/p2/
 /filesystem/*.bin
 /filesystem/flash0.img
 /linux/rootfs/Makefile
@@ -111,8 +113,10 @@ rootfs/buildroot
 #so3
 
 # except the followings:
-!.gitignore #Don't ignore the ignore file ;-)
-!*.tmpl #TaMPLate files for the man documentation
+!.gitignore
+
+# Template files for the man documentation
+!*.tmpl
 
 # Zephyr west workspace. `west update` fetches ~10 GB under zephyr/ (the
 # Zephyr tree itself, its modules, bootloader, tools and docs) plus the
